@@ -1,0 +1,49 @@
+.navBar {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  max-width: 420px;
+  background-color: #ffffff;
+  border-top: 1px solid #f1f3f5;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  z-index: 100;
+  padding-top: 8px;
+  /* Utilizes the device safe area padding from your snippet */
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
+}
+
+.navItem {
+  background: none;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: #000000; /* Standard inactive neutral text */
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 8px 16px;
+  min-height: 56px;
+  width: 100px;
+  transition: color 0.2s ease;
+}
+
+/* Ensure the SVG explicitly inherits the current text color */
+.navItem svg {
+  fill: currentColor;
+}
+
+.active {
+  color: #ff444f; /* Deriv Brand Red */
+}
+
+.icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

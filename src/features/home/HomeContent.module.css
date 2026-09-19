@@ -1,0 +1,225 @@
+.scrollContainer {
+  flex: 1;
+  padding: 20px 16px calc(var(--bottom-bar-height) + 20px) 16px;
+  overflow-y: auto;
+}
+
+.sectionTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--deriv-text-primary);
+  margin-bottom: 12px;
+}
+
+/* My Trading Accounts Grid */
+.accountsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.accountCard {
+   background-color: #E0E0E0;;
+  border-radius: 16px;
+  
+  padding: 16px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.badgeSquare {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  margin-bottom: 4px;
+}
+
+.mt5Square {
+  background-color: #0052cc;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.mt5Subtext {
+  font-size: 7px;
+  letter-spacing: 0.5px;
+}
+
+.optionsSquare {
+  background-color: var(--deriv-red);
+}
+
+.accountLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--deriv-text-primary);
+}
+
+.accountBalance {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--deriv-text-primary);
+}
+
+.unit {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--deriv-text-muted);
+  margin-left: 4px;
+}
+
+/* Explore Deriv Section */
+.exploreSection {
+  margin-bottom: 24px;
+}
+
+.exploreGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px 8px;
+}
+
+.exploreItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.circleIcon {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background-color: #E0E0E0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.miniIcon {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.exploreLabel {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--deriv-text-primary);
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* Highlights Section */
+.highlightsSection {
+  margin-bottom: 12px;
+}
+
+.carousel {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding-bottom: 6px;
+}
+
+.carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.highlightCard {
+  flex: 0 0 260px;
+  scroll-snap-align: start;
+  background-color: var(--deriv-card-bg);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+}
+
+.cardHero {
+  height: 130px;
+  background-color: #0b0e14;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.coinCircle {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  font-weight: 800;
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.5);
+}
+
+.goldStack {
+  display: flex;
+  gap: 4px;
+  align-items: flex-end;
+}
+
+.goldBar {
+  width: 18px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, #fcd34d 0%, #b45309 100%);
+}
+
+.cardDetails {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cardHeading {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--deriv-text-primary);
+}
+
+.cardSubtext {
+  font-size: 12px;
+  color: var(--deriv-text-secondary);
+  line-height: 1.4;
+}
+
+.badgeRow {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.tagPill {
+  font-size: 10px;
+  font-weight: 600;
+  background-color: #eef1f4;
+  color: #374151;
+  padding: 3px 6px;
+  border-radius: 4px;
+}

@@ -1,0 +1,304 @@
+.headerContainer {
+  background-color: var(--deriv-dark);
+  /* Matching the p-6 (24px) padding and giving extra room at the bottom for the curve */
+  padding: 16px 24px 32px 24px;
+  border-radius: 0 0 24px 24px;
+  color: #ffffff;
+  flex-shrink: 0;
+  /* Adding the exact shadow from your snippet to give it depth */
+  box-shadow: rgba(0, 0, 0, 0.35) 0px 8px 24px;
+  /* Replicating the border-neutral-700/50 faint line */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1); 
+}
+
+/* Top bar row - 1:1:1 Flex Grid forces mathematical centering of the middle item */
+.navRow {
+  display: flex;
+  align-items: center;
+  /* Increased from 24px to 32px to give that convincing height/gap before the balance */
+  margin-bottom: 32px;
+}
+
+.leftGroup {
+  flex: 1;
+  display: flex;
+  min-width: 0;
+  justify-content: flex-start;
+}
+
+.centerGroup {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  padding: 0 4px;
+}
+
+.rightGroup {
+  flex: 1;
+  display: flex;
+  min-width: 0;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+}
+
+/* User Profile Initial Icon */
+.profileBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #525252; /* Neutral 600 */
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+}
+
+.profileBtn:hover {
+  background-color: #737373; /* Neutral 500 */
+}
+
+.iconBtn {
+  background: none;
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+}
+
+.bellWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Circular background specifically for the bell */
+.bellBtn {
+  background-color: rgba(255, 255, 255, 0.08); /* Replicates bg-white-opacity-75 in dark mode */
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+}
+
+.badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background-color: var(--deriv-red);
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 10px;
+  border: 2px solid var(--deriv-dark); /* Keeps the dark ring cut-out */
+}
+
+/* Ask Amy Button */
+.askAmyBtn {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.askAmyBtn:hover {
+  opacity: 0.8;
+}
+
+.askAmyImg {
+  width: 114px;
+  height: 32px;
+  object-fit: contain;
+  object-position: center;
+  pointer-events: none;
+}
+
+/* Balance & action button row */
+.balanceRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.balanceCol {
+  display: flex;
+  flex-direction: column;
+}
+
+.totalLabel {
+  font-size: 12px;
+  color: var(--deriv-text-muted);
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.amount {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: #ffffff;
+}
+
+.currency {
+  font-size: 16px;
+  font-weight: 600;
+  margin-left: 6px;
+  color: #e5e7eb;
+}
+
+.timestamp {
+  font-size: 11px;
+  color: #636b7b;
+  margin-top: 4px;
+}
+
+.actionGroup {
+  display: flex;
+  gap: 8px;
+}
+
+.actionBtn {
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 22px;
+  border-radius: 9999px;
+  cursor: pointer;
+}
+
+.btnPrimary {
+  background-color: var(--deriv-red);
+  color: #ffffff;
+}
+
+.btnSecondary {
+  background-color: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+/* Real / Demo Toggle */
+.accountTypeToggle {
+  display: flex;
+  background-color: rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+  padding: 2px;
+}
+
+.toggleBtn {
+  border: none;
+  background: transparent;
+  color: #a0a5b1;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 5px 14px;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.toggleBtnActive {
+  background-color: #2c3240;
+  color: #ffffff;
+}
+
+/* Round Action Buttons for CFDs & Options */
+.circleActionsRow {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.circleActionItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.circleBtn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+}
+
+.circleBtnRed {
+  background-color: var(--deriv-red);
+}
+
+.circleBtnDark {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+.circleBtnLabel {
+  font-size: 12px;
+  color: #e5e7eb;
+  font-weight: 500;
+}
+
+/* Portfolio Sub Navigation */
+.subTabsRow {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  margin-bottom: 20px;
+  padding-bottom: 4px;
+}
+
+.subTabsRow::-webkit-scrollbar {
+  display: none;
+}
+
+.subTabBtn {
+  background: none;
+  border: none;
+  color: #8f96a3;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  position: relative;
+  padding-bottom: 6px;
+  white-space: nowrap;
+}
+
+.subTabBtnActive {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.subTabBtnActive::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: var(--deriv-red);
+  border-radius: 2px;
+}
+
+/* Add this to the bottom of your MobileTopHeader.module.css */
+.circleBtnOutline {
+  background-color: transparent;
+  border: 1px solid #ffffff;
+}

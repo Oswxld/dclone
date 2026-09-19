@@ -1,0 +1,1058 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&display=swap');
+
+/* Container & Layout */
+.workspaceWrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: #f4f5f8;
+}
+
+.blocklyContainer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+/* Visually hide Blockly's SVG scrollbars and dark tracks while keeping panning active */
+:global(.blocklyScrollbarVertical),
+:global(.blocklyScrollbarHorizontal) {
+  display: none !important;
+}
+
+/* Ensure no default borders are applied to the main SVG canvas */
+:global(.blocklySvg) {
+  border: none !important;
+  outline: none !important;
+}
+/* Remove default Blockly borders that cause dark lines at screen edges */
+.blocklyContainer :global(.blocklySvg) {
+  border: none !important;
+  outline: none !important;
+  background-color: transparent !important;
+}
+
+/* ==========================================================
+   DERIV BOT EXACT FIELD & PATH GEOMETRY
+   ========================================================== */
+
+/* 1. Amber Selected Block Outline */
+:global(.blocklySelected > .blocklyPath) {
+  stroke: #ffad3a !important;
+  stroke-width: 2.5px !important;
+}
+
+/* 2. Base Block Strokes */
+:global(.blocklyPath) {
+  stroke-width: 0.5px;
+}
+
+/* 3. Dropdown Pill Capsules */
+:global(.blocklyDropdownRect) {
+  fill: #ffffff !important;
+  stroke: #d6dadf !important;
+  stroke-width: 1px !important;
+  height: 32px !important;
+  rx: 16px !important;
+  ry: 16px !important;
+}
+
+/* 4. Number Input Pill Capsules */
+:global(.blocklyEditableText:not(:has(.blocklyCheckbox)) rect.blocklyFieldRect) {
+  fill: #ffffff !important;
+  stroke: #d6dadf !important;
+  stroke-width: 1px !important;
+  height: 30px !important;
+  rx: 15px !important;
+  ry: 15px !important;
+}
+
+:global(.blocklyEditableText:not(:has(.blocklyCheckbox)) text.blocklyText) {
+  font-family: 'IBM Plex Sans', sans-serif !important;
+  font-weight: 500 !important;
+  font-size: 15px !important;
+  fill: #333333 !important;
+  dominant-baseline: central !important;
+}
+
+/* 5. Dropdown Chevron Arrow */
+:global(.blocklyDropdownField image),
+:global(.blocklyEditableText image:not([style*="display: none"])) {
+  display: inline-block !important;
+  width: 12px !important;
+  height: 12px !important;
+}
+
+/* 6. Checkbox Container */
+:global(.blocklyEditableText:has(.blocklyCheckbox) rect) {
+  width: 20px !important;
+  height: 34px !important;
+  rx: 4px !important;
+  ry: 4px !important;
+  fill: #ffffff !important;
+  stroke: #acacac !important;
+  stroke-width: 0.8px !important;
+}
+
+:global(text.blocklyCheckbox) {
+  font-family: 'IBM Plex Sans', sans-serif !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  fill: #111827 !important;
+}
+
+/* ==========================================================
+   DERIV EXACT "SELL IS AVAILABLE" PILL CAPSULE (PICTURE 2)
+   ========================================================== */
+:global(g[data-id].sell_available_check text.blocklyText) {
+  font-family: 'IBM Plex Sans', sans-serif !important;
+  font-size: 15px !important;
+  font-weight: 400 !important;
+  fill: #333333 !important;
+  dominant-baseline: central !important;
+}
+
+/* Transform the "Sell is available" output block into a clean rounded capsule pill */
+/* ==========================================================
+   DERIV EXACT "SELL IS AVAILABLE" PILL CAPSULE (PICTURE 2)
+   ========================================================== */
+:global(g[data-id].sell_available_check > path.blocklyPath) {
+  fill: #ffffff !important;
+  stroke: #d6dadf !important;
+  stroke-width: 1px !important;
+  /* Clip the path into a true stadium/pill capsule shape */
+  clip-path: inset(0 round 16px) !important;
+}
+
+/* Suppress 3D bevels on the pill block */
+:global(g[data-id].sell_available_check > path.blocklyPathDark),
+:global(g[data-id].sell_available_check > path.blocklyPathLight) {
+  display: none !important;
+}
+
+:global(g[data-id].sell_available_check .blocklyFieldRect) {
+  display: none !important;
+}
+
+:global(g[data-id].sell_available_check text.blocklyText) {
+  font-family: 'IBM Plex Sans', sans-serif !important;
+  font-size: 14px !important;
+  font-weight: 400 !important;
+  fill: #333333 !important;
+  dominant-baseline: central !important;
+}
+
+/* Allow bottom shelf and arm to stretch */
+:global(g[data-id].sell_statement_block) {
+  overflow: visible !important;
+}
+
+/* ==========================================================
+   STRICT THREE-TIER TYPOGRAPHY HIERARCHY
+   ========================================================== */
+
+/* Tier 1: Bluish Root Box Text & Section Headers -> 19px, Pure White */
+:global(g[data-id].trade_parameters_root > g > text.blocklyText),
+:global(g[data-id].purchase_conditions_root > g > text.blocklyText),
+:global(g[data-id].sell_conditions_root > g > text.blocklyText),
+:global(g[data-id].restart_conditions_root > g > text.blocklyText),
+:global(.blocklyTextRootBlockHeader) {
+  font-family: 'IBM Plex Sans', sans-serif !important;
+  font-size: 19px !important;
+  font-weight: 400 !important;
+  fill: #ffffff !important;
+}
+
+/* Tier 2: White Step Box Labels ("Market:", "Trade Type:", "Duration:", etc.) -> 16.3px, Dark #333 */
+:global(g[data-id]:not(.trade_parameters_root):not(.purchase_conditions_root):not(.sell_conditions_root):not(.restart_conditions_root) > g:not(.blocklyEditableText) > text.blocklyText) {
+  font-family: 'IBM Plex Sans', sans-serif !important;
+  font-weight: 400 !important;
+  font-size: 16.3px !important;
+  fill: #333333 !important;
+}
+
+/* Tier 3: Inside Dropdown Capsules & Number Capsules -> 16px, Dark #333 */
+:global(.blocklyEditableText text.blocklyText),
+:global(text.blocklyDropdownText) {
+  font-family: 'IBM Plex Sans', sans-serif !important;
+  font-weight: 400 !important;
+  font-size: 16px !important;
+  fill: #333333 !important;
+}
+
+/* 7. Suppress Geras 3D bevel shadow lines across workspace */
+:global(.blocklyPathDark),
+:global(.blocklyPathLight) {
+  display: none !important;
+}
+
+:global(.blocklyTrash),
+:global(.blocklyZoom) {
+  display: none !important;
+}
+
+/* ==========================================================
+   FLOATING TOOLBAR & CONTROLS (Updated to stretch as sidebar)
+   ========================================================== */
+.floatingToolbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0; /* Stretches the toolbar from top to bottom */
+  width: 52px;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center the icons horizontally */
+  background-color: #ffffff;
+  border-right: 1px solid #d1d5db; /* Border only on the right to act as a sidebar */
+  z-index: 20;
+  padding: 16px 0; /* Space at top and bottom */
+  gap: 6px;
+}
+
+.toolBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  color: #4b5563;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.toolBtn:hover {
+  background-color: #f3f4f6;
+  color: #111827;
+}
+
+.toolDivider {
+  height: 1px;
+  width: 28px; /* Defined width so it fits within the center-aligned flex container */
+  background-color: #e5e7eb;
+  margin: 4px 0;
+}
+
+.quickStrategyBtn {
+  position: absolute;
+  top: 16px;
+  left: 68px; /* Adjusted to sit right next to the new 52px sidebar */
+  background-color: #ff444f;
+  color: #ffffff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  z-index: 20;
+  box-shadow: 0 2px 8px rgba(255, 68, 79, 0.25);
+}
+
+/* ==========================================================
+   UNIFIED BOTTOM PANEL (Flush Layout)
+   ========================================================== */
+.bottomPanel {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: #ffffff;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+}
+
+.chevronRow {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 32px;
+  background-color: #ffffff;
+  border-top: 1px solid #f2f3f4;
+  border-bottom: 1px solid #f2f3f4;
+  cursor: pointer;
+}
+
+.controlsBoxWrapper {
+  padding: 12px 16px 16px 16px;
+  background-color: #ffffff;
+}
+
+.controlsBox {
+  display: flex;
+  align-items: stretch;
+  height: 40px;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.runBtn {
+  background-color: #00a8a8;
+  color: #ffffff;
+  border: none;
+  width: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.runBtnDisabled {
+  background-color: #a0d4d4;
+  color: #ffffff;
+  border: none;
+  width: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: not-allowed;
+}
+
+.stopBtn {
+  background-color: #ff444f;
+  color: #ffffff;
+  border: none;
+  width: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.runBtnIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 12px;
+}
+
+.runBtnIcon svg {
+  height: 100%;
+  width: auto;
+}
+
+.stopSquare {
+  width: 12px;
+  height: 12px;
+  background-color: #ffffff;
+  border-radius: 2px;
+}
+
+/* ==========================================================
+   TRACK AREA & DOTS (Animated & Thicker)
+   ========================================================== */
+.trackArea {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 0 16px;
+}
+
+.trackText {
+  font-size: 12px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 6px;
+}
+
+.progressLineContainer {
+  position: relative;
+  width: 80%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 14px; /* Ensure space for thicker line and dots */
+}
+
+/* The thicker 6px grey line */
+.progressLineBackground {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background-color: #e5e7eb;
+  transform: translateY(-50%);
+  z-index: 1;
+  border-radius: 3px;
+}
+
+/* Animated Green Fill (Thicker 6px) */
+.progressBar {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  height: 6px;
+  background-color: #3ba59f;
+  transform: translateY(-50%);
+  z-index: 2;
+  border-radius: 3px;
+  /* Transition is handled directly via React style prop */
+}
+
+.circularWrapper {
+  position: relative;
+  width: 14px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+}
+
+.staticCircle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background-color: #9ca3af;
+  border-radius: 50%;
+  transition: background-color 0.3s ease;
+}
+
+.staticCircleActive {
+  background-color: #1e6d68;
+}
+
+/* The alternating Red/Green expanding pulse */
+.dynamicCircle {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  animation: pulseRedGreen 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+}
+
+@keyframes pulseRedGreen {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.8;
+    background-color: rgba(30, 109, 104, 0.7); /* Teal */
+  }
+  50% {
+    transform: scale(1.6);
+    opacity: 0;
+    background-color: rgba(255, 68, 79, 0.7); /* Red */
+  }
+  100% {
+    transform: scale(0.6);
+    opacity: 0.8;
+    background-color: rgba(30, 109, 104, 0.7); /* Teal */
+  }
+}
+
+/* ==========================================================
+   OUTCOME AREAS (Full Height Backgrounds & Fade In)
+   ========================================================== */
+.wonOutcomeArea {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: #e8f7f5;
+  color: #2b9d93;
+  font-size: 14px;
+  font-weight: 700;
+  animation: fadeOutcome 0.2s ease-out;
+}
+
+.lostOutcomeArea {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: #fde8e8;
+  color: #dc3545;
+  font-size: 14px;
+  font-weight: 700;
+  animation: fadeOutcome 0.2s ease-out;
+}
+
+@keyframes fadeOutcome {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+.iconCircle {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+/* ==========================================================
+   DRAWER (NEW DYNAMIC DASHBOARD LAYOUTS)
+   ========================================================== */
+.drawerBackdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ffffff;
+  z-index: 35;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding-bottom: 90px;
+}
+
+.drawerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  border-bottom: 1px solid #f1f3f5;
+  background-color: #ffffff;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.drawerTabs {
+  display: flex;
+  gap: 20px;
+}
+
+.drawerTabBtn {
+  background: transparent;
+  border: none;
+  font-size: 14px;
+  font-weight: 700;
+  color: #333333;
+  padding: 8px 0;
+  cursor: pointer;
+  position: relative;
+}
+
+.drawerTabBtnActive {
+  color: #111827;
+}
+
+.drawerTabBtnActive::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2.5px;
+  background-color: #ff444f;
+  border-radius: 2px;
+}
+
+.resetBtn {
+  background: transparent;
+  border: none;
+  color: #9ca3af;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* --- SUMMARY TAB WRAPPER --- */
+.summaryTabWrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  height: 100%;
+}
+
+/* --- IDLE STATE --- */
+.idleStateWrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  text-align: center;
+}
+
+.idleStateWrapper p {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* --- LIVE DASHBOARD (BOUGHT STATE) --- */
+.liveDashboard {
+  flex: 1;
+  padding: 16px 24px;
+  background: #ffffff;
+}
+
+.dashHeaderRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.dashMarket {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #333333;
+}
+
+.marketIconPng {
+  width: 28px;
+  height: 28px;
+}
+
+.dashAction {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+}
+
+/* --- TICK PROGRESS BAR INSIDE DASHBOARD --- */
+.dashTickTracker {
+  margin-bottom: 24px;
+}
+
+.dashTickLabel {
+  font-size: 12px;
+  color: #4b5563;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.dashTickBarBg {
+  height: 6px;
+  background-color: #9ca3af;
+  border-radius: 3px;
+  width: 100%;
+  overflow: hidden;
+}
+
+.dashTickBarFill {
+  height: 100%;
+  background-color: #3ba59f;
+  transition: width 0.3s ease;
+}
+
+/* --- 2x2 METRICS GRID --- */
+.dashMetrics2x2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  row-gap: 20px;
+}
+
+.dashMetricItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dashMetricLabel {
+  font-size: 11px;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.dashMetricVal {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.dashMetricValPlain {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.valGreen {
+  color: #00a8a8;
+}
+
+.valRed {
+  color: #ff444f;
+}
+
+/* --- CLOSED DASHBOARD (WON / LOST) --- */
+.closedDashboard {
+  flex: 1;
+  padding: 16px 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+.closedWinBg {
+  background: linear-gradient(to bottom, rgba(0, 168, 168, 0.1) 0%, #ffffff 30%);
+}
+
+.closedLossBg {
+  background: linear-gradient(to bottom, rgba(255, 68, 79, 0.1) 0%, #ffffff 30%);
+}
+
+.closedCenterStage {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: -30px; /* Offset the header height to perfectly center visually */
+}
+
+.closedStatusPill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* Dynamically colorized base64 flag */
+.maskFlag {
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+  -webkit-mask-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAAEgBckRAAAAAXNSR0IArs4c6QAAAa5JREFUaAXtV1tywzAIdDq5Rg/Ui/SGzYl8j1brzqYYidHDYWw60g/iIWABKc6yGOsG+XdaSr/uFLe0dkZkNC25Wt6U7zq7C05zJMH9FofBd0IymZIKR4qYWAyh95LfbCgAxYLwd/e3h+yJm0YQWiurk2V4cXkzaALO5owKAJV7E7gsr9zzQBaBiirVXaV3KYeTbtDVyNOgUIFU9q+CeFj0bBs9sL/k5fhJnSXHOakbnzxmUKH3kl5m0JK1ZQ/fxQBHncqk3Uskg217mX2mHBC4I3APMAB6HglfgXQPXvqaZgXBRTu4PqTT+M+1+00uPtfW+94rRy/cEbgHKJYIY8pRGykLz/7jEkmIslwt8mSzSrtsbznMDBsF7lM0A1Q74V6iagbTYFZgVsC7Ani7sbzjjPrPPhu1o4skv6YPj3edG/jDAOQXjQxgAe+1p0/rXPhfgvAAih+9bJukVgtfNSq9/plb+A6EB9A8QmePCkdG0/AdCA+geYR068hbo0W9pr326Tz+p35qP+SbAVjPHB2dRcOP0ARw1ugwbvgOtFziR0J72T807MSkswKDFfgBlTxsE+QpCHoAAAAASUVORK5CYII=');
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAAEgBckRAAAAAXNSR0IArs4c6QAAAa5JREFUaAXtV1tywzAIdDq5Rg/Ui/SGzYl8j1brzqYYidHDYWw60g/iIWABKc6yGOsG+XdaSr/uFLe0dkZkNC25Wt6U7zq7C05zJMH9FofBd0IymZIKR4qYWAyh95LfbCgAxYLwd/e3h+yJm0YQWiurk2V4cXkzaALO5owKAJV7E7gsr9zzQBaBiirVXaV3KYeTbtDVyNOgUIFU9q+CeFj0bBs9sL/k5fhJnSXHOakbnzxmUKH3kl5m0JK1ZQ/fxQBHncqk3Uskg217mX2mHBC4I3APMAB6HglfgXQPXvqaZgXBRTu4PqTT+M+1+00uPtfW+94rRy/cEbgHKJYIY8pRGykLz/7jEkmIslwt8mSzSrtsbznMDBsF7lM0A1Q74V6iagbTYFZgVsC7Ani7sbzjjPrPPhu1o4skv6YPj3edG/jDAOQXjQxgAe+1p0/rXPhfgvAAih+9bJukVgtfNSq9/plb+A6EB9A8QmePCkdG0/AdCA+geYR068hbo0W9pr326Tz+p35qP+SbAVjPHB2dRcOP0ARw1ugwbvgOtFziR0J72T807MSkswKDFfgBlTxsE+QpCHoAAAAASUVORK5CYII=');
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+}
+
+.bgGreen { background-color: #00a8a8; }
+.bgRed { background-color: #ff444f; }
+
+.closedMassiveAmount {
+  font-size: 20px;
+  font-weight: 700;
+  margin-top: 8px;
+}
+
+/* --- BOTTOM SUMMARY FOOTER --- */
+.summaryFooterContainer {
+  background-color: #f4f5f8;
+  padding: 24px;
+  border-top: 1px solid #e5e7eb;
+  margin-top: auto; /* Pins it to the bottom of the flex column */
+}
+
+/* Existing summary grid items overrides */
+.currencyPill {
+  display: inline-block;
+  background-color: #798696;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-bottom: 16px;
+}
+
+.resaleText {
+  text-align: center;
+  font-size: 12px;
+  color: #9ca3af;
+  margin-top: 32px;
+  font-weight: 500;
+}
+
+.metricsHeaderRow {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+
+.whatsThisLink {
+  font-size: 11px;
+  color: #6b7280;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  cursor: pointer;
+}
+
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  row-gap: 20px;
+  column-gap: 8px;
+  text-align: center;
+}
+
+.metricTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 4px;
+}
+
+.metricAmount {
+  font-size: 13px;
+  font-weight: 700;
+  color: #4b5563;
+}
+
+.metricAmountPositive {
+  color: #00a8a8;
+}
+
+.metricAmountNegative {
+  color: #ff444f;
+}
+
+/* ==========================================================
+   TRANSACTIONS TAB
+   ========================================================== */
+.transactionsWrapper {
+  padding: 16px;
+}
+
+.transControls {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.transOutlineBtn {
+  background: transparent;
+  border: 1px solid #d1d5db;
+  padding: 6px 16px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #4b5563;
+  cursor: pointer;
+}
+
+.transTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.transTable th {
+  font-size: 12px;
+  font-weight: 600;
+  color: #111827;
+  padding: 8px 4px;
+  text-align: left;
+}
+
+.transTable th:last-child {
+  text-align: right;
+}
+
+.transTableRow {
+  border-bottom: 1px solid #f3f4f6;
+}
+
+/* Animates the incoming cell data from the right when the row is first injected */
+.slideInCell {
+  animation: slideInRight 0.4s ease-out forwards;
+}
+
+@keyframes slideInRight {
+  0% { opacity: 0; transform: translateX(20px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+
+/* --- SHIMMERING SKELETON LOADERS --- */
+.skeletonBar {
+  width: 50px;
+  height: 12px;
+  background: #e5e7eb;
+  border-radius: 2px;
+  position: relative;
+  overflow: hidden;
+}
+
+.skeletonBar::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%; right: 0; bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  animation: shimmer 1.5s infinite;
+}
+
+.skeletonBarRight {
+  width: 60px;
+  height: 14px;
+  background: #e5e7eb;
+  border-radius: 2px;
+  margin-left: auto;
+  margin-top: 4px;
+  position: relative;
+  overflow: hidden;
+}
+
+.skeletonBarRight::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%; right: 0; bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  100% { left: 100%; }
+}
+
+.transTableRow td {
+  padding: 10px 4px;
+  font-size: 12px;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+/* TYPE COLUMN FLEXBOX */
+.typeColumn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.marketIconSmall {
+  width: 24px;
+  height: 24px;
+}
+
+.spotStack {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.spotLine {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #374151;
+}
+
+.spotCircleRed {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  border: 2px solid #ff444f;
+}
+
+.spotCircleGray {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  border: 2px solid #9ca3af;
+}
+
+.promptBackdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+}
+
+.promptCard {
+  background-color: #2b303a;
+  color: #ffffff;
+  width: 90%;
+  max-width: 320px;
+  border-radius: 16px;
+  padding: 24px 20px 16px;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4);
+}
+
+.promptOrigin {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: #f3f4f6;
+}
+
+.promptMessage {
+  font-size: 13px;
+  color: #d1d5db;
+  margin-bottom: 16px;
+}
+
+.promptInput {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid #9ca3af;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 6px 0;
+  outline: none;
+  margin-bottom: 24px;
+}
+
+.promptInput:focus {
+  border-bottom-color: #ff444f;
+}
+
+.promptActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 24px;
+}
+
+.promptBtnCancel,
+.promptBtnOk {
+  background: transparent;
+  border: none;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.promptBtnCancel {
+  color: #9ca3af;
+}
+
+.promptBtnOk {
+  color: #60a5fa;
+}
+
+/* Force dropdown arrow unicode tspans to solid black */
+:global(.blocklyDropdownText tspan),
+:global(.blocklyDropdownText),
+:global(.blocklyEditableText text tspan) {
+  fill: #111827 !important;
+}
+
+/* If Blockly injects the arrow as a separate tspan or class */
+:global(tspan[style*="fill"]) {
+  fill: #111827 !important;
+}

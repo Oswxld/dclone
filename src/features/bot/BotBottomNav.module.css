@@ -1,0 +1,60 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&display=swap');
+
+.bottomNavigation {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background-color: #ffffff;
+  border-top: 1px solid #e5e7eb;
+  /* Use fixed height to match native mobile bottom navs */
+  height: 56px; 
+  width: 100%;
+  position: relative;
+  bottom: 0;
+  left: 0;
+  z-index: 100;
+  /* Safe area padding for mobile devices (like iPhones with home indicators) */
+  padding-bottom: env(safe-area-inset-bottom, 0px); 
+}
+
+.bottomNavigationItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  /* Deriv inactive icon/text color */
+  color: #999999; 
+  cursor: pointer;
+  flex: 1;
+  height: 100%;
+  padding: 4px 0;
+  transition: color 0.15s ease;
+}
+
+.bottomNavigationItem:hover {
+  /* Slight hover effect for desktop utility */
+  color: #666666;
+}
+
+/* The active state switches the SVG fill and Text color to Deriv's Red */
+.bottomNavigationItemActive {
+  color: #ff444f !important;
+}
+
+.bottomNavigationIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Keeps the SVG tight with the label */
+  margin-bottom: 2px;
+}
+
+.bottomNavigationLabel {
+  /* Match Deriv's tiny navigation text size and weight */
+  font-size: 11px;
+  font-weight: 600;
+  font-family: 'IBM Plex Sans', sans-serif;
+  letter-spacing: 0.2px;
+}

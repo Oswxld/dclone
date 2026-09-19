@@ -1,0 +1,14 @@
+{
+  "users": [
+    {
+      "email": "oscar@example.com",
+      "password": "password123",
+      "deviceId": "d6798529-04ef-40a6-9213-d6f1d612caf0"
+    },
+    {
+      "email": "client@example.com",
+      "password": "clientpassword",
+      "deviceId": "sample-device-uuid-here"
+    }
+  ]
+}

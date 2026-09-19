@@ -1,0 +1,44 @@
+:root {
+  --deriv-red: #ff444f;
+  --deriv-red-active: #eb3e48;
+  --deriv-dark: #14171f;
+  --deriv-dark-card: #1d212b;
+  --deriv-gray-bg: #f3f5f7;
+  --deriv-card-bg: #ffffff;
+  --deriv-text-primary: #15171c;
+  --deriv-text-secondary: #6e7481;
+  --deriv-text-muted: #99a0ad;
+  --deriv-border: #e9ecf0;
+  
+  --font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+  --bottom-bar-height: 64px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: #0b0d11; /* Outer letterbox background for desktop browser preview */
+  color: var(--deriv-text-primary);
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+/* Constrain to mobile app dimensions */
+.mobile-viewport {
+  width: 100%;
+  max-width: 420px;
+  min-height: 100vh;
+  background-color: var(--deriv-gray-bg);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.4);
+  overflow-x: hidden;
+}
