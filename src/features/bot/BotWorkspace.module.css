@@ -528,54 +528,77 @@
 
 .drawerHeader {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 16px;
-  border-bottom: 1px solid #f1f3f5;
+  flex-direction: column;
   background-color: #ffffff;
   position: sticky;
   top: 0;
   z-index: 10;
 }
 
-.drawerTabs {
+.drawerTopRow {
   display: flex;
-  gap: 20px;
-}
-
-.drawerTabBtn {
-  background: transparent;
-  border: none;
-  font-size: 14px;
-  font-weight: 700;
-  color: #333333;
-  padding: 8px 0;
-  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 12px 16px;
   position: relative;
+  border-top: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e5e7eb;
 }
 
-.drawerTabBtnActive {
-  color: #111827;
-}
-
-.drawerTabBtnActive::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 2.5px;
-  background-color: #ff444f;
-  border-radius: 2px;
+.drawerChevron {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .resetBtn {
-  background: transparent;
-  border: none;
-  color: #9ca3af;
+  position: absolute;
+  right: 16px;
+  background-color: #ffffff;
+  border: 1px solid #d1d5db;
+  color: #374151;
   font-size: 13px;
   font-weight: 600;
+  padding: 6px 16px;
+  border-radius: 4px;
   cursor: pointer;
+}
+
+.drawerTabs {
+  display: flex;
+  width: 100%;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.drawerTabItem {
+  flex: 1;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #999999;
+  padding: 14px 0;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.2s ease;
+}
+
+.drawerTabItemActive {
+  color: #333333;
+}
+
+.drawerTabItemActive::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: #ff444f;
 }
 
 /* --- SUMMARY TAB WRAPPER --- */
@@ -839,6 +862,7 @@
   display: flex;
   gap: 12px;
   margin-bottom: 16px;
+  justify-content: flex-start;
 }
 
 .transOutlineBtn {
@@ -855,14 +879,17 @@
 .transTable {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
 }
 
 .transTable th {
   font-size: 12px;
   font-weight: 600;
   color: #111827;
-  padding: 8px 4px;
+  padding: 10px 4px;
   text-align: left;
+  border-top: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .transTable th:last-child {
@@ -969,6 +996,95 @@
   border-radius: 50%;
   border: 2px solid #9ca3af;
 }
+
+/* ==========================================================
+   JOURNAL TAB
+   ========================================================== */
+
+.journalWrapper {
+  padding: 16px 0; /* Changed from 16px to stretch edge-to-edge for stripes */
+}
+
+.journalToolsContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 0 16px; /* Added to keep tools inset while stripes go full width */
+}
+
+.journalDownloadBtn {
+  background: transparent;
+  border: 1px solid #d1d5db;
+  padding: 6px 16px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #4b5563;
+  cursor: pointer;
+}
+
+.journalFilterContainer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #374151;
+  cursor: pointer;
+}
+
+.journalFilterLabel {
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.journalList {
+  display: flex;
+  flex-direction: column;
+  /* Removed gap so backgrounds touch */
+}
+
+.journalItemRow {
+  display: flex;
+  flex-direction: column; /* Stacked layout instead of side-by-side */
+  justify-content: center;
+  align-items: flex-start; /* Left aligned */
+  padding: 10px 16px; /* Edge-to-edge padding */
+  /* Removed bottom border in favor of zebra striping */
+}
+
+.journalItemRow:nth-child(even) {
+  background-color: #f4f5f8; /* Deriv's exact light gray alternating stripe */
+}
+
+.journalItemContent {
+  font-size: 13px;
+  color: #374151;
+  font-weight: 400; /* Normal weight to match Deriv */
+  margin-bottom: 4px; /* Clean spacing between text and timestamp */
+}
+
+.journalInfo {
+  color: #3b82f6; 
+}
+
+.journalSuccess {
+  color: #00a8a8;
+}
+
+.journalDanger {
+  color: #ff444f;
+}
+
+.journalTimestamp {
+  font-size: 11px;
+  color: #9ca3af;
+  text-align: left; /* Left-aligned directly under the text */
+  white-space: nowrap;
+}
+
+/* ==========================================================
+   PROMPT MODALS
+   ========================================================== */
 
 .promptBackdrop {
   position: fixed;

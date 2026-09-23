@@ -5,7 +5,6 @@ import { BotHeader } from './BotHeader';
 import { BotBottomNav, type BotTab } from './BotBottomNav';
 import { initDerivBlocks, DerivTheme } from './blocklyConfig';
 import { useAccount } from '../../context/AccountContext';
-import marketIcon from '../../assets/volatility75(1s)Index.png';
 
 type BotWorkspaceProps = {
   onBack: () => void;
@@ -21,6 +20,14 @@ interface TransactionItem {
   profit: number;
   isWin: boolean;
   isPending?: boolean;
+}
+
+interface JournalLog {
+  id: string;
+  type: 'buy' | 'profit' | 'loss';
+  contractId?: string;
+  amount?: number;
+  timestamp: string;
 }
 
 interface PromptState {
@@ -43,12 +50,9 @@ const MarketIcon = ({ market, className }: { market: string; className?: string 
 
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className={className} role="img">
-      {/* Candlesticks */}
       <path fill="#0AA0B0" d="M22.5 13H24v9h-1.5v10h-1V22H20v-9h1.5v-2h1zM30 11v7h-1.5v4h-1v-4H26v-7zM16.5 20v-4h-1v4H14v8h1.5v2h1v-2H18v-8zM10.5 15H12v6h-1.5v7h-1v-7H8v-6h1.5v-2h1zM4.5 19H6v4H4.5v2h-1v-2H2v-4h1.5v-2h1z"></path>
-      {/* Dark Square & Number */}
       <rect x="0" y="2" width={boxWidth} height="13" rx="2" fill="#414652" />
       <text x={Number(boxWidth)/2} y="12" fill="#ffffff" fontSize="10" fontWeight="700" fontFamily="IBM Plex Sans, sans-serif" textAnchor="middle">{num}</text>
-      {/* 1s Red Badge */}
       {has1s && (
         <g>
           <circle cx={badgeCx} cy="6" r="6" fill="#FF444F" />
@@ -87,13 +91,21 @@ const ActionIcon = ({ action, className }: { action: string; className?: string 
     );
   }
   
-  // Standard Rise/Fall Text Arrows
   const isRise = action === 'Rise';
   return (
     <span style={{ color: isRise ? '#00a8a8' : '#ff444f', fontWeight: 700, fontSize: '18px' }} className={className}>
       {isRise ? '↗' : '↘'}
     </span>
   );
+};
+
+const pickRandom = (arr: number[]) => arr[Math.floor(Math.random() * arr.length)];
+
+const getGMTTimestamp = () => {
+  const now = new Date();
+  const date = now.toISOString().split('T')[0];
+  const time = now.toISOString().split('T')[1].split('.')[0];
+  return `${date} | ${time} GMT`;
 };
 
 // ------------------------------------------------------------------
@@ -124,6 +136,7 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
   const [contractsWon, setContractsWon] = useState<number>(0);
   const [totalProfitLoss, setTotalProfitLoss] = useState<number>(0);
   const [transactions, setTransactions] = useState<TransactionItem[]>([]);
+  const [journalLogs, setJournalLogs] = useState<JournalLog[]>([]);
 
   useEffect(() => {
     setTotalStake(0);
@@ -133,6 +146,7 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
     setContractsWon(0);
     setTotalProfitLoss(0);
     setTransactions([]);
+    setJournalLogs([]);
     setSimPhase('IDLE');
     setIsSimulating(false);
     isSimulatingRef.current = false;
@@ -194,6 +208,7 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
     setContractsWon(0);
     setTotalProfitLoss(0);
     setTransactions([]);
+    setJournalLogs([]);
     if (activeMode === 'demo') {
       updateOptionsBalance(10000.0, true);
     }
@@ -259,11 +274,13 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
     let payoutRate = 1.95;
     if (category === 'Digits') {
       if (tradeType === 'MATCHDIFF') {
-        payoutRate = actionLabel === 'Matches' ? 9.0 : 1.09;
+        payoutRate = actionLabel === 'Matches' ? 9.09 : 1.09;
       } else if (tradeType === 'EVENODD') {
-        payoutRate = 1.95;
+        payoutRate = 1.96;
       } else if (tradeType === 'OVERUNDER') {
-        payoutRate = actionLabel === 'Over' ? (10 / (9 - prediction)) * 0.95 : (10 / prediction) * 0.95;
+        const safeOverDivider = Math.max(1, 9 - prediction);
+        const safeUnderDivider = Math.max(1, prediction);
+        payoutRate = actionLabel === 'Over' ? (10 / safeOverDivider) * 0.95 : (10 / safeUnderDivider) * 0.95;
       }
     }
     const potentialPayout = parseFloat((stake * payoutRate).toFixed(2));
@@ -280,6 +297,18 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
     const startSpot = 868.0 + Math.random() * 2;
     let currentSpot = startSpot;
     const currentTxId = Date.now().toString();
+    const fakeContractId = Math.floor(27017000000 + Math.random() * 999999).toString();
+
+    // Log the Buy Event in Journal
+    setJournalLogs((prev) => [
+      {
+        id: Date.now().toString() + '-buy',
+        type: 'buy',
+        contractId: fakeContractId,
+        timestamp: getGMTTimestamp(),
+      },
+      ...prev,
+    ]);
 
     setTransactions((prev) => [
       {
@@ -313,49 +342,53 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
       let nextSpot = currentSpot + (Math.random() - 0.49) * 0.4;
 
       if (t === duration) {
-        const forceWin = Math.random() < 0.70;
-        let lastDigit = parseInt(nextSpot.toFixed(2).slice(-1), 10);
+        const forceWin = Math.random() < 0.60;
         
         if (category === 'Digits') {
+          let winningDigits: number[] = [];
+          let losingDigits: number[] = [];
+          const allDigits = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+          
           if (tradeType === 'MATCHDIFF') {
             if (actionLabel === 'Matches') {
-              if (forceWin) {
-                nextSpot = Math.floor(nextSpot * 10) / 10 + (prediction / 100);
-              } else if (lastDigit === prediction) {
-                nextSpot += 0.01;
-              }
+              winningDigits = [prediction];
+              losingDigits = allDigits.filter(d => d !== prediction);
             } else { 
-              if (forceWin) {
-                if (lastDigit === prediction) nextSpot += 0.01;
-              } else {
-                nextSpot = Math.floor(nextSpot * 10) / 10 + (prediction / 100);
-              }
+              winningDigits = allDigits.filter(d => d !== prediction);
+              losingDigits = [prediction];
             }
           } else if (tradeType === 'EVENODD') {
-            const isCurrentlyEven = lastDigit % 2 === 0;
+            const evens = [0, 2, 4, 6, 8];
+            const odds = [1, 3, 5, 7, 9];
             if (actionLabel === 'Even') {
-              if (forceWin && !isCurrentlyEven) nextSpot += 0.01;
-              if (!forceWin && isCurrentlyEven) nextSpot += 0.01;
+              winningDigits = evens;
+              losingDigits = odds;
             } else { 
-              if (forceWin && isCurrentlyEven) nextSpot += 0.01;
-              if (!forceWin && !isCurrentlyEven) nextSpot += 0.01;
+              winningDigits = odds;
+              losingDigits = evens;
             }
           } else if (tradeType === 'OVERUNDER') {
             if (actionLabel === 'Over') {
-              if (forceWin && lastDigit <= prediction) nextSpot += ((prediction + 1 - lastDigit) / 100);
-              if (!forceWin && lastDigit > prediction) nextSpot -= ((lastDigit - prediction) / 100);
+              winningDigits = allDigits.filter(d => d > prediction);
+              losingDigits = allDigits.filter(d => d <= prediction);
             } else { 
-              if (forceWin && lastDigit >= prediction) nextSpot -= ((lastDigit - prediction + 1) / 100);
-              if (!forceWin && lastDigit < prediction) nextSpot += ((prediction - lastDigit) / 100);
+              winningDigits = allDigits.filter(d => d < prediction);
+              losingDigits = allDigits.filter(d => d >= prediction);
             }
           }
+
+          const finalDigit = forceWin ? pickRandom(winningDigits) : pickRandom(losingDigits);
+          const spotStr = nextSpot.toFixed(2);
+          const forcedSpotStr = spotStr.substring(0, spotStr.length - 1) + finalDigit;
+          nextSpot = parseFloat(forcedSpotStr);
+
         } else {
           if (actionLabel === 'Rise') {
-            if (forceWin && nextSpot <= startSpot) nextSpot = startSpot + Math.random() * 0.5 + 0.05;
-            if (!forceWin && nextSpot > startSpot) nextSpot = startSpot - Math.random() * 0.5 - 0.05;
+            if (forceWin && nextSpot <= startSpot) nextSpot = startSpot + Math.random() * 0.5 + 0.01;
+            if (!forceWin && nextSpot > startSpot) nextSpot = startSpot - Math.random() * 0.5 - 0.01;
           } else { 
-            if (forceWin && nextSpot >= startSpot) nextSpot = startSpot - Math.random() * 0.5 - 0.05;
-            if (!forceWin && nextSpot < startSpot) nextSpot = startSpot + Math.random() * 0.5 + 0.05;
+            if (forceWin && nextSpot >= startSpot) nextSpot = startSpot - Math.random() * 0.5 - 0.01;
+            if (!forceWin && nextSpot < startSpot) nextSpot = startSpot + Math.random() * 0.5 + 0.01;
           }
         }
       }
@@ -406,9 +439,23 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
       setSimPhase('LOST');
     }
 
+    // Log the Outcome Event in Journal
+    setJournalLogs((prev) => [
+      {
+        id: Date.now().toString() + '-result',
+        type: isWin ? 'profit' : 'loss',
+        amount: isWin ? parseFloat((potentialPayout - stake).toFixed(2)) : parseFloat((-stake).toFixed(2)),
+        timestamp: getGMTTimestamp(),
+      },
+      ...prev,
+    ]);
+
+    const finalEntrySpot = category === 'Digits' ? exitSpot : parseFloat(startSpot.toFixed(2));
+
     setTransactions((prev) => prev.map((tx) => 
       tx.id === currentTxId ? {
         ...tx,
+        entrySpot: finalEntrySpot,
         exitSpot,
         profit: tradeProfit,
         isWin,
@@ -636,45 +683,52 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
             {drawerOpen && (
               <div className={styles.drawerBackdrop}>
                 <div className={styles.drawerHeader}>
-                  <div className={styles.drawerTabs}>
-                    <button
-                      type="button"
-                      className={`${styles.drawerTabBtn} ${drawerTab === 'summary' ? styles.drawerTabBtnActive : ''}`}
+                  
+                  {/* Top Row with Chevron and Reset */}
+                  <div className={styles.drawerTopRow}>
+                    <div 
+                      className={styles.drawerChevron} 
+                      onClick={() => setDrawerOpen(false)}
+                    >
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2.5" style={{ transform: 'rotate(180deg)' }}>
+                        <path d="M18 15l-6-6-6 6" />
+                      </svg>
+                    </div>
+                    <button type="button" className={styles.resetBtn} onClick={handleResetMetrics}>
+                      Reset
+                    </button>
+                  </div>
+
+                  <ul className={styles.drawerTabs}>
+                    <li
+                      className={`${styles.drawerTabItem} ${drawerTab === 'summary' ? styles.drawerTabItemActive : ''}`}
                       onClick={() => setDrawerTab('summary')}
                     >
                       Summary
-                    </button>
-                    <button
-                      type="button"
-                      className={`${styles.drawerTabBtn} ${drawerTab === 'transactions' ? styles.drawerTabBtnActive : ''}`}
+                    </li>
+                    <li
+                      className={`${styles.drawerTabItem} ${drawerTab === 'transactions' ? styles.drawerTabItemActive : ''}`}
                       onClick={() => setDrawerTab('transactions')}
                     >
                       Transactions
-                    </button>
-                    <button
-                      type="button"
-                      className={`${styles.drawerTabBtn} ${drawerTab === 'journal' ? styles.drawerTabBtnActive : ''}`}
+                    </li>
+                    <li
+                      className={`${styles.drawerTabItem} ${drawerTab === 'journal' ? styles.drawerTabItemActive : ''}`}
                       onClick={() => setDrawerTab('journal')}
                     >
                       Journal
-                    </button>
-                  </div>
-                  <button type="button" className={styles.resetBtn} onClick={handleResetMetrics}>
-                    Reset
-                  </button>
+                    </li>
+                  </ul>
                 </div>
 
                 {drawerTab === 'summary' && (
                   <div className={styles.summaryTabWrapper}>
-                    
-                    {/* 1. IDLE / BUYING STATE (Empty center text) */}
                     {(simPhase === 'IDLE' || simPhase === 'BUYING') && numberOfRuns === 0 && (
                       <div className={styles.idleStateWrapper}>
                         <p>When you’re ready to trade, hit <strong>Run</strong>. You’ll be able to track your bot’s performance here.</p>
                       </div>
                     )}
 
-                    {/* 2. BOUGHT / RUNNING STATE (Live Contract Dashboard) */}
                     {(simPhase === 'BOUGHT' || ((simPhase === 'IDLE' || simPhase === 'BUYING') && numberOfRuns > 0)) && (
                       <div className={styles.liveDashboard}>
                         <div className={styles.dashHeaderRow}>
@@ -727,7 +781,6 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
                       </div>
                     )}
 
-                    {/* 3. WON / LOST STATE (Closed Outcome Banner) */}
                     {(simPhase === 'WON' || simPhase === 'LOST') && (
                       <div className={`${styles.closedDashboard} ${simPhase === 'WON' ? styles.closedWinBg : styles.closedLossBg}`}>
                         <div className={styles.dashHeaderRow} style={{ opacity: 0.3 }}>
@@ -757,7 +810,6 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
                       </div>
                     )}
 
-                    {/* 4. SUMMARY FOOTER (Stays pinned at bottom) */}
                     {numberOfRuns > 0 && (
                       <div className={styles.summaryFooterContainer}>
                         <div className={styles.metricsHeaderRow}>
@@ -857,29 +909,65 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
                     </table>
                   </div>
                 )}
+
+                {drawerTab === 'journal' && (
+                  <div className={styles.journalWrapper}>
+                    <div className={styles.journalToolsContainer}>
+                      <button type="button" className={styles.journalDownloadBtn}>Download</button>
+                      <div className={styles.journalFilterContainer}>
+                        <span className={styles.journalFilterLabel}>Filters</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16px" height="16px" viewBox="0 0 11 18" fill="currentColor">
+                          <path d="M.25 5.75C.25 5.352.578 5 1 5h9c.398 0 .75.352.75.75 0 .422-.352.75-.75.75H1a.74.74 0 0 1-.75-.75m1.5 3.75c0-.398.328-.75.75-.75h6c.398 0 .75.352.75.75 0 .422-.352.75-.75.75h-6a.74.74 0 0 1-.75-.75M7 13.25c0 .422-.352.75-.75.75h-1.5a.74.74 0 0 1-.75-.75c0-.398.328-.75.75-.75h1.5c.398 0 .75.352.75.75"></path>
+                        </svg>
+                      </div>
+                    </div>
+                    <div className={styles.journalList}>
+                      {journalLogs.map((log) => (
+                        <div key={log.id} className={`${styles.journalItemRow} ${styles.slideInCell}`}>
+                          <div className={styles.journalItemContent}>
+                            {log.type === 'buy' && (
+                              <div><span className={styles.journalInfo}>Bought</span>: Contract purchased (ID: {log.contractId})</div>
+                            )}
+                            {log.type === 'profit' && (
+                              <div>Profit amount: <span className={styles.journalSuccess}>{log.amount?.toFixed(2)} USD</span></div>
+                            )}
+                            {log.type === 'loss' && (
+                              <div>Loss amount: <span className={styles.journalDanger}>{log.amount?.toFixed(2)} USD</span></div>
+                            )}
+                          </div>
+                          <div className={styles.journalTimestamp}>
+                            {log.timestamp}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
             {/* Unified Bottom Anchor Panel (Chevron + Run Box) */}
             <div className={styles.bottomPanel}>
-              {/* Chevron Row */}
-              <div 
-                className={styles.chevronRow} 
-                onClick={() => setDrawerOpen(!drawerOpen)}
-                aria-label="Toggle Drawer"
-              >
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#374151"
-                  strokeWidth="2.5"
-                  style={{ transform: drawerOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s ease' }}
+              
+              {/* Chevron Row - Only visible when drawer is CLOSED */}
+              {!drawerOpen && (
+                <div 
+                  className={styles.chevronRow} 
+                  onClick={() => setDrawerOpen(true)}
+                  aria-label="Open Drawer"
                 >
-                  <path d="M18 15l-6-6-6 6" />
-                </svg>
-              </div>
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#374151"
+                    strokeWidth="2.5"
+                  >
+                    <path d="M18 15l-6-6-6 6" />
+                  </svg>
+                </div>
+              )}
 
               {/* Controls Box Section */}
               <div className={styles.controlsBoxWrapper}>

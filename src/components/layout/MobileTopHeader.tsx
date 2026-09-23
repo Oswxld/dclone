@@ -2,24 +2,23 @@ import { useState } from 'react';
 import styles from './MobileTopHeader.module.css';
 import { useAccount } from '../../context/AccountContext';
 import type { NavigationTab } from '../../types/account';
-
 import askAmySvg from '../../assets/ask_amy.svg';
+import usersData from '../../data/users.json';
 
 type MobileTopHeaderProps = {
   currentTab: NavigationTab;
   onOpenTransfer?: () => void;
+  onOpenProfile?: () => void;
 };
 
-export const MobileTopHeader = ({ currentTab, onOpenTransfer }: MobileTopHeaderProps) => {
-  const { balances, activeMode, setActiveMode, updateOptionsBalance, adminOverrideBalances } = useAccount();
+export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenProfile }: MobileTopHeaderProps) => {
+  const { balances, activeMode, setActiveMode, updateOptionsBalance } = useAccount();
   const [portfolioSubTab, setPortfolioSubTab] = useState<'Overview' | 'Wallet' | 'Partners' | 'Trading' | 'P2P'>('Overview');
   
-  // --- SECRET ADMIN STATE ---
-  const [showSecretModal, setShowSecretModal] = useState(false);
-  const [secretOptions, setSecretOptions] = useState('');
-  const [secretCfds, setSecretCfds] = useState('');
-  const [secretWallet, setSecretWallet] = useState('');
-  const [secretP2p, setSecretP2p] = useState('');
+  // Dynamically fetch initials from the logged-in user
+  const userEmail = localStorage.getItem('deriv_current_user');
+  const user = usersData.users.find(u => u.email === userEmail);
+  const initials = user ? `${user.firstName[0]}${user.lastName[0]}`.toUpperCase() : 'ON';
 
   const displayAmount =
     currentTab === 'cfds'
@@ -39,32 +38,6 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer }: MobileTopHeaderP
     }
   };
 
-  const handleAdminSubmit = () => {
-    setActiveMode('real'); // Force switch to real account view
-    
-    const updates: any = {};
-    if (secretOptions !== '') updates.optionsUsd = parseFloat(secretOptions);
-    if (secretCfds !== '') updates.cfdsUsd = parseFloat(secretCfds);
-    if (secretWallet !== '') updates.walletUsd = parseFloat(secretWallet);
-    if (secretP2p !== '') updates.p2pUsd = parseFloat(secretP2p);
-
-    setTimeout(() => {
-      adminOverrideBalances(updates);
-      setShowSecretModal(false);
-      setSecretOptions('');
-      setSecretCfds('');
-      setSecretWallet('');
-      setSecretP2p('');
-    }, 50);
-  };
-
-  // Reusable inline style for the 4 modal inputs
-  const inputStyle = {
-    width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #334155',
-    background: '#0b0d11', color: '#fff', fontSize: '14px', boxSizing: 'border-box' as const,
-    outline: 'none', fontFamily: '"IBM Plex Sans", sans-serif'
-  };
-
   return (
     <header className={styles.headerContainer}>
       {/* 1. Top Bar */}
@@ -74,13 +47,13 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer }: MobileTopHeaderP
         <div className={styles.leftGroup}>
           <div 
             className={styles.profileBtn}
-            onClick={() => setShowSecretModal(true)}
+            onClick={onOpenProfile}
             style={{ cursor: 'pointer' }}
             role="button"
             tabIndex={0}
-            aria-label="Admin Settings"
+            aria-label="Profile Settings"
           >
-            OS
+            {initials}
           </div>
         </div>
 
@@ -152,17 +125,19 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer }: MobileTopHeaderP
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <span className={styles.amount}>{formattedAmount}</span>
             <span className={styles.currency}>{balances.currency}</span>
-            {currentTab === 'options' && activeMode === 'demo' && (
-              <button
-                type="button"
-                onClick={handleReset}
-                style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', padding: 2 }}
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.19" />
-                </svg>
-              </button>
-            )}
+            
+            {/* SINGLE Universal Refresh Icon (Visible in both Real and Demo) */}
+            <button
+              type="button"
+              data-testid="options-btn-refresh"
+              aria-label="Refresh balance"
+              onClick={currentTab === 'options' && activeMode === 'demo' ? handleReset : undefined}
+              style={{ background: 'none', border: 'none', color: '#ffffff', cursor: 'pointer', padding: '0 2px', display: 'flex', alignItems: 'center', opacity: 0.9 }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="24" height="24" role="img" fill="currentColor">
+                <path d="M24.438 15.25h-5.625c-.547 0-.938-.39-.938-.937 0-.508.39-.938.938-.938h3.515l-1.055-1.25c-1.289-1.523-3.164-2.5-5.273-2.5A6.86 6.86 0 0 0 9.125 16.5 6.836 6.836 0 0 0 16 23.375a6.8 6.8 0 0 0 4.102-1.367.94.94 0 0 1 1.328.195.94.94 0 0 1-.196 1.328C19.79 24.625 17.954 25.25 16 25.25a8.736 8.736 0 0 1-8.75-8.75c0-4.805 3.906-8.75 8.75-8.75 2.695 0 5.117 1.25 6.719 3.164l.781.938V8.687c0-.507.39-.937.938-.937a.95.95 0 0 1 .937.938v5.624c0 .547-.43.938-.937.938"></path>
+              </svg>
+            </button>
           </div>
           <span className={styles.timestamp}>
             {currentTab === 'cfds' ? 'Updated 6 min ago' : balances.lastUpdated}
@@ -267,62 +242,6 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer }: MobileTopHeaderP
           </div>
         )}
       </div>
-
-      {/* --- SECRET ADMIN MODAL --- */}
-      {showSecretModal && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, 
-          backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 9999,
-          display: 'flex', alignItems: 'center', justifyContent: 'center'
-        }}>
-          <div style={{
-            background: '#15171c', border: '1px solid #334155', borderRadius: '16px',
-            padding: '24px', width: '90%', maxWidth: '380px', boxShadow: '0 10px 25px rgba(0,0,0,0.5)',
-            maxHeight: '90vh', overflowY: 'auto'
-          }}>
-            <h3 style={{ color: '#fff', fontSize: '18px', fontWeight: 600, margin: '0 0 8px 0', fontFamily: '"IBM Plex Sans", sans-serif' }}>
-              Admin Override
-            </h3>
-            <p style={{ color: '#94a3b8', fontSize: '13px', margin: '0 0 20px 0', fontFamily: '"IBM Plex Sans", sans-serif' }}>
-              Leave blank to keep current value.
-            </p>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
-              <div>
-                <label style={{ display: 'block', color: '#cbd5e1', fontSize: '12px', marginBottom: '6px', fontFamily: '"IBM Plex Sans", sans-serif' }}>Options (Deriv Trader/Bot)</label>
-                <input type="number" value={secretOptions} onChange={(e) => setSecretOptions(e.target.value)} placeholder={balances.optionsUsd.toString()} style={inputStyle} />
-              </div>
-              <div>
-                <label style={{ display: 'block', color: '#cbd5e1', fontSize: '12px', marginBottom: '6px', fontFamily: '"IBM Plex Sans", sans-serif' }}>CFDs</label>
-                <input type="number" value={secretCfds} onChange={(e) => setSecretCfds(e.target.value)} placeholder={balances.cfdsUsd.toString()} style={inputStyle} />
-              </div>
-              <div>
-                <label style={{ display: 'block', color: '#cbd5e1', fontSize: '12px', marginBottom: '6px', fontFamily: '"IBM Plex Sans", sans-serif' }}>Wallet (USD)</label>
-                <input type="number" value={secretWallet} onChange={(e) => setSecretWallet(e.target.value)} placeholder={balances.walletUsd.toString()} style={inputStyle} />
-              </div>
-              <div>
-                <label style={{ display: 'block', color: '#cbd5e1', fontSize: '12px', marginBottom: '6px', fontFamily: '"IBM Plex Sans", sans-serif' }}>Deriv P2P</label>
-                <input type="number" value={secretP2p} onChange={(e) => setSecretP2p(e.target.value)} placeholder={balances.p2pUsd.toString()} style={inputStyle} />
-              </div>
-            </div>
-            
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-              <button 
-                onClick={() => setShowSecretModal(false)}
-                style={{ padding: '10px 16px', background: 'transparent', border: 'none', color: '#94a3b8', fontWeight: 600, cursor: 'pointer', fontFamily: '"IBM Plex Sans", sans-serif' }}
-              >
-                Cancel
-              </button>
-              <button 
-                onClick={handleAdminSubmit}
-                style={{ padding: '10px 20px', background: '#ff444f', border: 'none', borderRadius: '8px', color: '#fff', fontWeight: 600, cursor: 'pointer', fontFamily: '"IBM Plex Sans", sans-serif' }}
-              >
-                Update Balances
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </header>
   );
 };

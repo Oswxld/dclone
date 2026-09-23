@@ -9,13 +9,12 @@ import { PortfolioContent } from './features/portfolio/PortfolioContent';
 import { TransferScreen } from './features/portfolio/TransferScreen';
 import { BotLoader } from './features/bot/BotLoader';
 import { BotWorkspace } from './features/bot/BotWorkspace';
-import { LoginScreen } from './features/auth/LoginScreen';
+import { ProfileScreen } from './features/profile/ProfileScreen';
 import type { NavigationTab } from './types/account';
 import './styles/mobile.css';
 
 export const App = () => {
   // --- AUTHENTICATION STATE ---
-  // Stores the actual email of the logged-in user and checks storage on load
   const [currentUser, setCurrentUser] = useState<string | null>(() => {
     return localStorage.getItem('deriv_current_user');
   });
@@ -24,20 +23,20 @@ export const App = () => {
 
   const handleLogin = (identifier: string) => {
     console.log('Logging in user:', identifier);
-    // Save their specific identifier so they stay logged in across app restarts
     localStorage.setItem('deriv_current_user', identifier);
     setCurrentUser(identifier);
   };
 
   const handleLogout = () => {
-    // You can attach this to a logout button later
     localStorage.removeItem('deriv_current_user');
     setCurrentUser(null);
+    setIsProfileOpen(false);
   };
 
   // --- MAIN APP STATE ---
   const [currentTab, setCurrentTab] = useState<NavigationTab>('options');
   const [isTransferOpen, setIsTransferOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false); // New profile state
 
   // Bot Navigation State
   const [isBotLoading, setIsBotLoading] = useState(false);
@@ -57,8 +56,6 @@ export const App = () => {
     setCurrentTab('options');
   };
 
-  
-
   // --- MAIN APP (Only accessible after login) ---
   return (
     <AccountProvider>
@@ -66,8 +63,13 @@ export const App = () => {
         {/* Deriv Bot Loading Transition Overlay */}
         {isBotLoading && <BotLoader onComplete={handleBotLoaded} />}
 
-        {/* Active Bot Workspace View */}
-        {isBotActive ? (
+        {/* Profile Full-Screen Overlay */}
+        {isProfileOpen ? (
+          <ProfileScreen 
+            onBack={() => setIsProfileOpen(false)} 
+            onLogout={handleLogout} 
+          />
+        ) : isBotActive ? (
           <BotWorkspace onBack={handleExitBot} />
         ) : isTransferOpen ? (
           <TransferScreen
@@ -82,6 +84,7 @@ export const App = () => {
             <MobileTopHeader
               currentTab={currentTab}
               onOpenTransfer={() => setIsTransferOpen(true)}
+              onOpenProfile={() => setIsProfileOpen(true)}
             />
 
             {currentTab === 'home' && <HomeContent />}
