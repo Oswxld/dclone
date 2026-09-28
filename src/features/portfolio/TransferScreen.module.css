@@ -437,7 +437,7 @@
   flex-direction: column;
   overflow-y: auto;
   min-height: 0px;
-  color: rgb(255, 255, 255);
+  color: rgb(255, 255, 255)!important;
   
   /* Authentic CSS Gradient Background */
   background: 
@@ -508,7 +508,7 @@
 .successDesc {
   margin: 10px 0px 0px;
   line-height: 1.45;
-  color: rgba(255, 255, 255, 0.82);
+  color: rgba(255, 255, 255, 0.82)!important;
   white-space: nowrap;
   font-size: min(16px, 4.4vw);
 }
@@ -533,7 +533,7 @@
   justify-content: center;
   border-radius: 999px;
   background: rgb(255, 68, 79);
-  color: rgb(255, 255, 255);
+  color: rgb(255, 255, 255)!important;
   font-size: 16px;
   font-weight: 700;
   line-height: 1;
@@ -556,7 +556,7 @@
   border-radius: 999px;
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.32);
-  color: rgb(255, 255, 255);
+  color: rgb(255, 255, 255)!important;
   font-size: 16px;
   font-weight: 700;
   line-height: 1;
