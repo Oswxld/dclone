@@ -20,8 +20,18 @@ export interface AccountContextType {
   activeMode: AccountMode;
   setActiveMode: (mode: AccountMode) => void;
   balances: AccountBalances;
+  
+  // Expose Real and Demo specifically for the Admin Panel
+  realBalances: AccountBalances;
+  demoBalances: AccountBalances;
+  
   updateOptionsBalance: (deltaOrValue: number, isAbsolute?: boolean) => void;
-  adminOverrideBalances: (updates: Partial<AccountBalances>) => void;
+  
+  // Extended Admin Controls
+  adminOverrideBalances: (realUpdates: Partial<AccountBalances>, demoUpdates: Partial<AccountBalances>) => void;
+  winAccuracy: number;
+  setWinAccuracy: (accuracy: number) => void;
+  
   transferFunds: (fromKey: AccountKey, toKey: AccountKey, amount: number) => boolean;
 }
 
@@ -32,6 +42,9 @@ const AccountContext = createContext<AccountContextType | undefined>(undefined);
 
 export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [activeMode, setActiveMode] = useState<AccountMode>('real');
+  
+  // NEW: Global simulation win accuracy (0-100)
+  const [winAccuracy, setWinAccuracy] = useState<number>(60);
 
   // 1. Real Account State
   const [realBalances, setRealBalances] = useState<AccountBalances>(() => {
@@ -141,12 +154,13 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   // God-mode override for all balances
-  const adminOverrideBalances = (updates: Partial<AccountBalances>) => {
+  const adminOverrideBalances = (realUpdates: Partial<AccountBalances>, demoUpdates: Partial<AccountBalances>) => {
     setRealBalances((prev) => {
-      const nextOptions = updates.optionsUsd !== undefined ? updates.optionsUsd : prev.optionsUsd;
-      const nextCfds = updates.cfdsUsd !== undefined ? updates.cfdsUsd : prev.cfdsUsd;
-      const nextWallet = updates.walletUsd !== undefined ? updates.walletUsd : prev.walletUsd;
-      const nextP2p = updates.p2pUsd !== undefined ? updates.p2pUsd : prev.p2pUsd;
+      const nextOptions = realUpdates.optionsUsd !== undefined ? realUpdates.optionsUsd : prev.optionsUsd;
+      const nextCfds = realUpdates.cfdsUsd !== undefined ? realUpdates.cfdsUsd : prev.cfdsUsd;
+      const nextWallet = realUpdates.walletUsd !== undefined ? realUpdates.walletUsd : prev.walletUsd;
+      const nextP2p = realUpdates.p2pUsd !== undefined ? realUpdates.p2pUsd : prev.p2pUsd;
+      const nextUsdt = realUpdates.walletUsdt !== undefined ? realUpdates.walletUsdt : prev.walletUsdt;
 
       return {
         ...prev,
@@ -154,14 +168,39 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
         cfdsUsd: nextCfds,
         walletUsd: nextWallet,
         p2pUsd: nextP2p,
+        walletUsdt: nextUsdt,
         totalUsd: parseFloat((nextOptions + nextCfds + nextWallet + nextP2p).toFixed(2)),
+        lastUpdated: 'just now'
+      };
+    });
+    
+    setDemoBalances((prev) => {
+      const nextOptions = demoUpdates.optionsUsd !== undefined ? demoUpdates.optionsUsd : prev.optionsUsd;
+      const nextCfds = demoUpdates.cfdsUsd !== undefined ? demoUpdates.cfdsUsd : prev.cfdsUsd;
+
+      return {
+        ...prev,
+        optionsUsd: nextOptions,
+        cfdsUsd: nextCfds,
+        totalUsd: parseFloat((nextOptions + nextCfds + prev.walletUsd + prev.p2pUsd).toFixed(2)),
         lastUpdated: 'just now'
       };
     });
   };
 
   return (
-    <AccountContext.Provider value={{ activeMode, setActiveMode, balances, updateOptionsBalance, adminOverrideBalances, transferFunds }}>
+    <AccountContext.Provider value={{ 
+      activeMode, 
+      setActiveMode, 
+      balances, 
+      realBalances,
+      demoBalances,
+      updateOptionsBalance, 
+      adminOverrideBalances, 
+      transferFunds,
+      winAccuracy,
+      setWinAccuracy
+    }}>
       {children}
     </AccountContext.Provider>
   );

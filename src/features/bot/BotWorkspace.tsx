@@ -117,7 +117,8 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
   const blocklyDivRef = useRef<HTMLDivElement>(null);
   const workspaceRef = useRef<Blockly.WorkspaceSvg | null>(null);
 
-  const { balances, updateOptionsBalance, activeMode } = useAccount();
+  // --- NEW: Destructure winAccuracy from Context ---
+  const { balances, updateOptionsBalance, activeMode, winAccuracy } = useAccount();
 
   // Simulation Runner State
   const [isSimulating, setIsSimulating] = useState<boolean>(false);
@@ -342,7 +343,8 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
       let nextSpot = currentSpot + (Math.random() - 0.49) * 0.4;
 
       if (t === duration) {
-        const forceWin = Math.random() < 0.60;
+        // --- NEW: Use dynamic admin probability instead of hardcoded 0.60 ---
+        const forceWin = Math.random() < (winAccuracy / 100);
         
         if (category === 'Digits') {
           let winningDigits: number[] = [];

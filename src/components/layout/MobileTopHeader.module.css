@@ -399,3 +399,187 @@
 .homeDepositBtn:hover {
   background-color: #d82b3a;
 }
+
+
+
+
+
+
+
+
+/*ADMIN CONTROL*/
+/* ... [Keep all your existing CSS above this line] ... */
+
+/* =========================================
+   HIDDEN ADMIN PANEL MODAL CSS
+   ========================================= */
+
+.adminModalBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+}
+
+.adminSheetContent {
+  width: 100%;
+  max-width: 480px;
+  background-color: #ffffff;
+  border-radius: 20px 20px 0 0;
+  padding: 16px 20px 32px 20px;
+  max-height: 90vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  font-family: Inter, sans-serif;
+}
+
+.adminSheetHandle {
+  width: 40px;
+  height: 4px;
+  border-radius: 2px;
+  background-color: #d1d5db;
+  margin: 0 auto 24px auto;
+}
+
+.adminSectionRow {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 24px;
+}
+
+.adminLabelRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.adminTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: #374151;
+}
+
+.adminAccuracyVal {
+  font-size: 15px;
+  font-weight: 700;
+  color: #ff444f;
+}
+
+/* Custom Range Slider */
+.adminSlider {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 6px;
+  background: #4b5563;
+  border-radius: 3px;
+  outline: none;
+  margin: 10px 0;
+}
+
+.adminSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ff444f;
+  cursor: pointer;
+  border: 2px solid #ffffff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.adminSliderLabels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #9ca3af;
+  margin-bottom: 8px;
+}
+
+.adminSubText {
+  font-size: 13px;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+/* Balances Inputs */
+.adminInputRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+}
+
+.adminInputLabelGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+.adminWalletName {
+  font-size: 14px;
+  font-weight: 400;
+  color: #374151;
+}
+
+.adminModeReal {
+  font-size: 11px;
+  font-weight: 600;
+  color: #00a8a8;
+}
+
+.adminModeDemo {
+  font-size: 11px;
+  font-weight: 600;
+  color: #ff8c00; /* Deriv Demo Orange */
+}
+
+.adminNumInput {
+  width: 120px;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  
+  text-align: right;
+  outline: none;
+}
+
+.adminNumInput:focus {
+  border-color: #ff444f;
+}
+
+/* Action Buttons */
+.adminActionsRow {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.adminBtnOutline {
+  flex: 1;
+  padding: 14px;
+  border-radius: 24px;
+  background: transparent;
+  border: 1px solid #d1d5db;
+  color: #111827;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.adminBtnFilled {
+  flex: 1;
+  padding: 14px;
+  border-radius: 24px;
+  background: #ff444f;
+  border: none;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
