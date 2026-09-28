@@ -1,21 +1,19 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
 .headerContainer {
   background-color: var(--deriv-dark);
-  /* Matching the p-6 (24px) padding and giving extra room at the bottom for the curve */
   padding: 16px 24px 32px 24px;
   border-radius: 0 0 24px 24px;
   color: #ffffff;
   flex-shrink: 0;
-  /* Adding the exact shadow from your snippet to give it depth */
   box-shadow: rgba(0, 0, 0, 0.35) 0px 8px 24px;
-  /* Replicating the border-neutral-700/50 faint line */
   border-bottom: 1px solid rgba(255, 255, 255, 0.1); 
 }
 
-/* Top bar row - 1:1:1 Flex Grid forces mathematical centering of the middle item */
+/* Top bar row */
 .navRow {
   display: flex;
   align-items: center;
-  /* Increased from 24px to 32px to give that convincing height/gap before the balance */
   margin-bottom: 32px;
 }
 
@@ -51,7 +49,7 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background-color: #525252; /* Neutral 600 */
+  background-color: #525252;
   color: #ffffff;
   font-size: 12px;
   font-weight: 500;
@@ -60,7 +58,7 @@
 }
 
 .profileBtn:hover {
-  background-color: #737373; /* Neutral 500 */
+  background-color: #737373; 
 }
 
 .iconBtn {
@@ -80,9 +78,8 @@
   align-items: center;
 }
 
-/* Circular background specifically for the bell */
 .bellBtn {
-  background-color: rgba(255, 255, 255, 0.08); /* Replicates bg-white-opacity-75 in dark mode */
+  background-color: rgba(255, 255, 255, 0.08); 
   border-radius: 50%;
   width: 32px;
   height: 32px;
@@ -99,7 +96,7 @@
   font-weight: 700;
   padding: 1px 5px;
   border-radius: 10px;
-  border: 2px solid var(--deriv-dark); /* Keeps the dark ring cut-out */
+  border: 2px solid var(--deriv-dark); 
 }
 
 /* Ask Amy Button */
@@ -127,48 +124,141 @@
   pointer-events: none;
 }
 
-/* Balance & action button row */
-.balanceRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
+/* =========================================================
+   RE-ARCHITECTED VERTICAL BALANCE SECTION & TYPOGRAPHY
+   ========================================================= */
 
-.balanceCol {
+.balanceSection {
   display: flex;
   flex-direction: column;
+  width: 100%;
+}
+
+.balanceTextBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin: 0;
+  padding: 0;
+  gap: 0; /* Ensures 0 padding between stacked elements */
 }
 
 .totalLabel {
+  font-family: Inter, "Inter Fallback";
   font-size: 12px;
-  color: var(--deriv-text-muted);
-  font-weight: 500;
-  margin-bottom: 4px;
+  color: rgba(255, 255, 255, 0.72);
+  font-weight: 400;
+  margin: 0;
+  line-height: 1.2;
 }
 
-.amount {
-  font-size: 24px;
-  font-weight: 700;
-  letter-spacing: -0.5px;
+.balanceAmountRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 2px 0; /* Just enough space for extrabold text to not clip */
+  min-height: 34px;
+}
+
+.combinedAmount {
+  font-family: Inter, "Inter Fallback";
+  font-size: 20px; /* Reduced from 24px to perfectly match Deriv */
+  font-weight: 800; 
+  white-space: nowrap;
   color: #ffffff;
-}
-
-.currency {
-  font-size: 16px;
-  font-weight: 600;
-  margin-left: 6px;
-  color: #e5e7eb;
+  margin: 0;
+  line-height: 1.2;
 }
 
 .timestamp {
-  font-size: 11px;
-  color: #636b7b;
-  margin-top: 4px;
+  font-family: Inter, "Inter Fallback";
+  font-size: 12px; /* Reduced from 13px */
+  color: rgba(255, 255, 255, 0.72);
+  margin: 0;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.refreshBtn {
+  background: none;
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+  padding: 0 2px;
+  display: flex;
+  align-items: center;
+  opacity: 0.9;
 }
 
-.actionGroup {
+/* =========================================================
+   ACTION BUTTONS (HORIZONTALLY SPACED)
+   ========================================================= */
+
+.circleActionsRow {
   display: flex;
-  gap: 8px;
+  align-items: center;
+  justify-content: space-around; /* Authentically spreads buttons across the container width */
+  width: 100%;
+  margin-top: 24px; /* Separation from the text block above */
+}
+
+.circleActionItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.circleActionItem:active {
+  opacity: 0.7;
+}
+
+.circleBtn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  transition: background-color 0.2s ease;
+}
+
+.circleBtnRed {
+  background-color: var(--deriv-red);
+}
+
+.circleBtnRed:hover {
+  background-color: #d82b3a; /* Hover state for red btn */
+}
+
+.circleBtnOutline {
+  background-color: transparent;
+  border: 1px solid #ffffff;
+}
+
+.circleBtnOutline:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.circleBtnDark {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+.circleBtnLabel {
+  font-size: 12px;
+  color: #ffffff;
+  font-weight: 500;
+}
+
+/* Special SVG resize just for the Trade icon */
+.svgTradeIcon {
+  height: 28px;
+  width: 28px;
 }
 
 .actionBtn {
@@ -182,11 +272,6 @@
 
 .btnPrimary {
   background-color: var(--deriv-red);
-  color: #ffffff;
-}
-
-.btnSecondary {
-  background-color: rgba(255, 255, 255, 0.12);
   color: #ffffff;
 }
 
@@ -215,47 +300,6 @@
   color: #ffffff;
 }
 
-/* Round Action Buttons for CFDs & Options */
-.circleActionsRow {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
-
-.circleActionItem {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  background: none;
-  border: none;
-  cursor: pointer;
-}
-
-.circleBtn {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #ffffff;
-}
-
-.circleBtnRed {
-  background-color: var(--deriv-red);
-}
-
-.circleBtnDark {
-  background-color: rgba(255, 255, 255, 0.12);
-}
-
-.circleBtnLabel {
-  font-size: 12px;
-  color: #e5e7eb;
-  font-weight: 500;
-}
-
 /* Portfolio Sub Navigation */
 .subTabsRow {
   display: flex;
@@ -270,6 +314,7 @@
 }
 
 .subTabBtn {
+  font-family: Inter, "Inter Fallback";
   background: none;
   border: none;
   color: #8f96a3;
@@ -297,8 +342,36 @@
   border-radius: 2px;
 }
 
-/* Add this to the bottom of your MobileTopHeader.module.css */
-.circleBtnOutline {
-  background-color: transparent;
-  border: 1px solid #ffffff;
+/* SKELETON LOADER & SPINNER */
+.balanceSkeleton {
+  width: 140px;
+  height: 30px;
+  background-color: rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  position: relative;
+  overflow: hidden;
+}
+
+.balanceSkeleton::after {
+  content: '';
+  position: absolute;
+  top: 0; 
+  left: -100%; 
+  right: 0; 
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+  animation: shimmer 1s infinite;
+}
+
+@keyframes shimmer {
+  100% { left: 100%; }
+}
+
+.spinIcon {
+  animation: spinRefresh 0.8s linear infinite;
+}
+
+@keyframes spinRefresh {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }

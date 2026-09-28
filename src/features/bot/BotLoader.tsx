@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import styles from './BotLoader.module.css';
 
 type BotLoaderProps = {
@@ -6,30 +6,30 @@ type BotLoaderProps = {
 };
 
 export const BotLoader = ({ onComplete }: BotLoaderProps) => {
-  const [statusMessage, setStatusMessage] = useState('Connecting to the server...');
-
   useEffect(() => {
-    const step1 = setTimeout(() => {
-      setStatusMessage('Initializing Deriv Bot...');
-    }, 1100);
-
-    const step2 = setTimeout(() => {
+    // We only need one timer now since the text remains static
+    const timer = setTimeout(() => {
       onComplete();
     }, 2200);
 
     return () => {
-      clearTimeout(step1);
-      clearTimeout(step2);
+      clearTimeout(timer);
     };
   }, [onComplete]);
 
   return (
     <div className={styles.loaderContainer}>
-      <div className={styles.spinnerWrapper}>
-        <div className={styles.spinner} />
+      <div className={styles.initLoaderContainer}>
+        {/* The 5 staggered wave bars */}
+        <div className={styles.initWave}>
+          <div className={styles.initBar} style={{ animationDelay: '0s' }}></div>
+          <div className={styles.initBar} style={{ animationDelay: '0.1s' }}></div>
+          <div className={styles.initBar} style={{ animationDelay: '0.2s' }}></div>
+          <div className={styles.initBar} style={{ animationDelay: '0.3s' }}></div>
+          <div className={styles.initBar} style={{ animationDelay: '0.4s' }}></div>
+        </div>
+        <div className={styles.initText}>Initializing Deriv Bot account...</div>
       </div>
-      <p className={styles.loadingStatusText}>{statusMessage}</p>
-      <span className={styles.loadingSubtext}>Please wait a moment</span>
     </div>
   );
 };

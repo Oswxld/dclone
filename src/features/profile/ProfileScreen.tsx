@@ -89,7 +89,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onLogout }
                 <path d="M18 16v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-5 0h-2v-2h2v2zm0-4h-2V8h2v4zm-1 10c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2z"/>
               </svg>
             </button>
-            <span style={{ position: 'absolute', top: '-4px', right: '-4px', background: '#FF444F', color: '#fff', fontSize: '10px', fontWeight: 'bold', width: '16px', height: '16px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>1</span>
+           
           </div>
         </div>
 
@@ -119,11 +119,11 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onLogout }
         <ListItem title="Tax information" />
 
         <h3 style={{ margin: '28px 20px 8px', fontSize: '15px', fontWeight: 700, color: '#171717', fontFamily: '"IBM Plex Sans", sans-serif' }}>Verification</h3>
-        <ListItem title="Proof of identity" subtitle="Unverified" />
+        <ListItem title="Proof of identity" subtitle="Verified" />
         <ListItem title="Proof of address" subtitle="Verified" />
 
         <h3 style={{ margin: '28px 20px 8px', fontSize: '15px', fontWeight: 700, color: '#171717', fontFamily: '"IBM Plex Sans", sans-serif' }}>Assessment</h3>
-        <ListItem title="Financial assessment" subtitle="Incomplete" />
+        <ListItem title="Financial assessment" subtitle="Complete" />
 
         <h3 style={{ margin: '28px 20px 8px', fontSize: '15px', fontWeight: 700, color: '#171717', fontFamily: '"IBM Plex Sans", sans-serif' }}>Security</h3>
         <ListItem title="Set password" />

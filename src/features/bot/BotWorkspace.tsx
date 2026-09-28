@@ -566,7 +566,7 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
     const rootSell = ws.newBlock('sell_conditions_root');
     rootSell.initSvg();
     rootSell.render();
-    rootSell.moveTo(new Blockly.utils.Coordinate(650, 48));
+    rootSell.moveTo(new Blockly.utils.Coordinate(730, 48));
 
     const sellIfBlock = ws.newBlock('sell_statement_block');
     sellIfBlock.initSvg();
@@ -581,7 +581,7 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
     const rootRestart = ws.newBlock('restart_conditions_root');
     rootRestart.initSvg();
     rootRestart.render();
-    rootRestart.moveTo(new Blockly.utils.Coordinate(650, 280));
+    rootRestart.moveTo(new Blockly.utils.Coordinate(730, 280));
 
     const tradeAgain = ws.newBlock('trade_again_block');
     tradeAgain.initSvg();

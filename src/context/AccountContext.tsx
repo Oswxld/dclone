@@ -49,7 +49,7 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
       walletUsd: walletVal,
       walletUsdt: 350.0,
       p2pUsd: p2pVal,
-      lastUpdated: 'Just now',
+      lastUpdated: ' just now',
     };
   });
 
@@ -66,7 +66,7 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
       walletUsd: 0.0,
       walletUsdt: 0.0,
       p2pUsd: 0.0,
-      lastUpdated: 'Just now',
+      lastUpdated: 'just now',
     };
   });
 
@@ -91,12 +91,12 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (activeMode === 'real') {
       setRealBalances((prev) => {
         const nextOptions = isAbsolute ? parseFloat(deltaOrValue.toFixed(2)) : parseFloat((prev.optionsUsd + deltaOrValue).toFixed(2));
-        return { ...prev, optionsUsd: nextOptions, totalUsd: parseFloat((nextOptions + prev.cfdsUsd + prev.walletUsd + prev.p2pUsd).toFixed(2)), lastUpdated: 'Just now' };
+        return { ...prev, optionsUsd: nextOptions, totalUsd: parseFloat((nextOptions + prev.cfdsUsd + prev.walletUsd + prev.p2pUsd).toFixed(2)), lastUpdated: ' just now' };
       });
     } else {
       setDemoBalances((prev) => {
         const nextOptions = isAbsolute ? parseFloat(deltaOrValue.toFixed(2)) : parseFloat((prev.optionsUsd + deltaOrValue).toFixed(2));
-        return { ...prev, optionsUsd: nextOptions, totalUsd: parseFloat((nextOptions + prev.cfdsUsd + prev.walletUsd + prev.p2pUsd).toFixed(2)), lastUpdated: 'Just now' };
+        return { ...prev, optionsUsd: nextOptions, totalUsd: parseFloat((nextOptions + prev.cfdsUsd + prev.walletUsd + prev.p2pUsd).toFixed(2)), lastUpdated: 'just now' };
       });
     }
   };
@@ -116,7 +116,7 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
         walletUsd: nextWallet,
         p2pUsd: nextP2p,
         totalUsd: parseFloat((nextOptions + nextCfds + nextWallet + nextP2p).toFixed(2)),
-        lastUpdated: 'Just now',
+        lastUpdated: 'just now'
       };
     });
   };
