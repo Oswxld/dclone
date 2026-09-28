@@ -150,8 +150,8 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenProfile }: M
         </div>
       )}
 
-      {/* 3. Re-architected Vertical Column Balance Section */}
-      <div className={styles.balanceSection}>
+      {/* 3. Conditional Layout: Home uses side-by-side row, others use vertical column */}
+      <div className={currentTab === 'home' ? styles.balanceHomeRow : styles.balanceSection}>
         
         {/* Tightly Stacked Text Block */}
         <div className={styles.balanceTextBlock}>
@@ -203,14 +203,12 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenProfile }: M
           )}
         </div>
 
-        {/* 4. Action Buttons (Rendered below and evenly spaced) */}
+        {/* 4. Action Buttons */}
         
         {currentTab === 'home' && (
-          <div className={styles.circleActionsRow}>
-            <button type="button" className={`${styles.actionBtn} ${styles.btnPrimary}`}>
-              Deposit
-            </button>
-          </div>
+          <button type="button" className={styles.homeDepositBtn}>
+            Deposit
+          </button>
         )}
 
         {/* CFDs & Options Actions */}
@@ -250,10 +248,9 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenProfile }: M
           </div>
         )}
 
-        {/* Portfolio Actions with Official Deriv SVGs */}
+        {/* Portfolio Actions */}
         {currentTab === 'portfolio' && (
           <div className={styles.circleActionsRow} style={{ gap: 14 }}>
-            {/* Deposit */}
             <button type="button" className={styles.circleActionItem}>
               <div className={`${styles.circleBtn} ${styles.circleBtnRed}`}>
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="28" height="28" role="img" fill="currentColor">
@@ -263,7 +260,6 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenProfile }: M
               <span className={styles.circleBtnLabel}>Deposit</span>
             </button>
 
-            {/* Transfer */}
             <button type="button" className={styles.circleActionItem} onClick={onOpenTransfer}>
               <div className={`${styles.circleBtn} ${styles.circleBtnOutline}`}>
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="28" height="28" role="img" fill="currentColor">
@@ -273,7 +269,6 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenProfile }: M
               <span className={styles.circleBtnLabel}>Transfer</span>
             </button>
 
-            {/* Withdraw */}
             <button type="button" className={styles.circleActionItem} onClick={onOpenTransfer}>
               <div className={`${styles.circleBtn} ${styles.circleBtnOutline}`}>
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="28" height="28" role="img" fill="currentColor">

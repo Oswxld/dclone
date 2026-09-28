@@ -1,3 +1,14 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* Apply Inter globally to the entire app */
+html, body, * {
+  font-family: Inter, "Inter Fallback", sans-serif;
+}
+
+body, button, input, select, textarea, div, span, p {
+  font-family: Inter, "Inter Fallback", sans-serif !important;
+}
+
 :root {
   --text: #6b6375;
   --text-h: #08060d;

@@ -38,10 +38,11 @@
    DERIV BOT EXACT FIELD & PATH GEOMETRY
    ========================================================== */
 
-/* 1. Amber Selected Block Outline */
+/* 1. Amber Selected Block Outline - Acts as backup to the new SVG Theme filter! */
 :global(.blocklySelected > .blocklyPath) {
-  stroke: #ffad3a !important;
-  stroke-width: 2.5px !important;
+  stroke: #ffc358 !important;
+  stroke-width: 3px !important;
+  filter: none !important;
 }
 
 /* 2. Base Block Strokes */

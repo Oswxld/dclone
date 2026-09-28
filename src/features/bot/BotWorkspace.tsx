@@ -255,8 +255,8 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
     setCurrentDuration(duration); 
 
     const rawPurchase = purchaseBlock?.getFieldValue('PURCHASE_LIST') 
-                     || purchaseBlock?.getFieldValue('PURCHASE_TYPE') 
-                     || purchaseBlock?.getFieldValue('PURCHASE');
+                      || purchaseBlock?.getFieldValue('PURCHASE_TYPE') 
+                      || purchaseBlock?.getFieldValue('PURCHASE');
 
     let actionLabel = 'Rise';
     if (category === 'Digits') {

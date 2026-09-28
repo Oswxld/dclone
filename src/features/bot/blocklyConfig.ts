@@ -464,7 +464,7 @@ export const initDerivBlocks = () => {
 };
 
 // ============================================================================
-// THEME DEFINITION
+// THEME DEFINITION - Updated Glow Properties Fix Bright Yellow Issue
 // ============================================================================
 export const DerivTheme = Blockly.Theme.defineTheme('deriv_theme', {
   name: 'deriv_theme',
@@ -489,6 +489,11 @@ export const DerivTheme = Blockly.Theme.defineTheme('deriv_theme', {
     fieldBackgroundColour: 'transparent',
     fieldBorderColour: '#acacac',
     fieldTextColour: '#333333',
+    // THIS FIXES THE YELLOW! Forces Blockly's internal filters to use Amber.
+    selectedGlowColour: '#ffc358',
+    replacementGlowColour: '#ffc358',
+    cursorColour: '#ffc358',
+    markerColour: '#ffc358',
   },
   fontStyle: {
     family: '"IBM Plex Sans", sans-serif',
