@@ -107,9 +107,21 @@ export const TransferScreen = ({ onClose, onNavigateToOptions }: TransferScreenP
     }
   };
 
-  const filteredOptions = ACCOUNT_OPTIONS.filter((opt) =>
-    opt.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Dynamically filter options based on search query AND mutual exclusivity
+  const filteredOptions = ACCOUNT_OPTIONS.filter((opt) => {
+    const matchesSearch = opt.name.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    // If opening the "From" picker, hide whatever is currently selected in "To"
+    if (pickerModal === 'from') {
+      return matchesSearch && opt.key !== toKey;
+    }
+    // If opening the "To" picker, hide whatever is currently selected in "From"
+    if (pickerModal === 'to') {
+      return matchesSearch && opt.key !== fromKey;
+    }
+    
+    return matchesSearch;
+  });
 
   return (
     <div className={styles.transferContainer}>

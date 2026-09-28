@@ -117,7 +117,6 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
   const blocklyDivRef = useRef<HTMLDivElement>(null);
   const workspaceRef = useRef<Blockly.WorkspaceSvg | null>(null);
 
-  // --- NEW: Destructure winAccuracy from Context ---
   const { balances, updateOptionsBalance, activeMode, winAccuracy } = useAccount();
 
   // Simulation Runner State
@@ -219,7 +218,78 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
     if (isSimulating) {
       isSimulatingRef.current = false;
       setIsSimulating(false);
-      setSimPhase('IDLE');
+      
+      // --- FORCE FINISH LOGIC: If we hit Stop while a contract is actively pending ---
+      if (simPhase === 'BOUGHT' && activeContract) {
+        const forceWin = Math.random() < (winAccuracy / 100);
+        
+        // Grab values from activeContract state
+        const { market, action, stake, potentialPayout } = activeContract;
+        const startSpot = transactions[0]?.entrySpot || 868.0; 
+        
+        // Fast-forward exit spot based on forced probability
+        let exitSpot = startSpot;
+        if (['Rise', 'Fall', 'Under', 'Over', 'Even', 'Odd', 'Matches', 'Differs'].includes(action)) {
+            // Simplified forced resolution for the stop state
+            if (action === 'Rise') {
+                exitSpot = forceWin ? startSpot + 0.5 : startSpot - 0.5;
+            } else if (action === 'Fall') {
+                exitSpot = forceWin ? startSpot - 0.5 : startSpot + 0.5;
+            } else {
+                exitSpot = startSpot + (Math.random() - 0.5); // Fallback for digits in force-stop
+            }
+        }
+        
+        const isWin = forceWin;
+        const tradeProfit = isWin 
+            ? parseFloat((potentialPayout - stake).toFixed(2)) 
+            : parseFloat((-stake).toFixed(2));
+
+        // Update Balances
+        if (isWin) {
+            updateOptionsBalance(potentialPayout);
+            setTotalPayout((prev) => parseFloat((prev + potentialPayout).toFixed(2)));
+            setContractsWon((prev) => prev + 1);
+            setTotalProfitLoss((prev) => parseFloat((prev + tradeProfit).toFixed(2)));
+        } else {
+            setContractsLost((prev) => prev + 1);
+            setTotalProfitLoss((prev) => parseFloat((prev - stake).toFixed(2)));
+        }
+
+        // Update UI States
+        setSimPhase(isWin ? 'WON' : 'LOST');
+
+        // Resolve Pending Skeleton Transaction
+        setTransactions((prev) => {
+            const newTx = [...prev];
+            if (newTx.length > 0 && newTx[0].isPending) {
+                newTx[0].exitSpot = exitSpot;
+                newTx[0].isWin = isWin;
+                newTx[0].profit = tradeProfit;
+                newTx[0].isPending = false;
+            }
+            return newTx;
+        });
+
+        // Write Final Log
+        setJournalLogs((prev) => [
+          {
+            id: Date.now().toString() + '-result-forced',
+            type: isWin ? 'profit' : 'loss',
+            amount: tradeProfit,
+            timestamp: getGMTTimestamp(),
+          },
+          ...prev,
+        ]);
+        
+        // Let the WON/LOST UI flash briefly before resetting to IDLE
+        setTimeout(() => {
+             setSimPhase('IDLE');
+        }, 1500);
+      } else {
+        setSimPhase('IDLE');
+      }
+
     } else {
       isSimulatingRef.current = true;
       setIsSimulating(true);
@@ -343,7 +413,6 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
       let nextSpot = currentSpot + (Math.random() - 0.49) * 0.4;
 
       if (t === duration) {
-        // --- NEW: Use dynamic admin probability instead of hardcoded 0.60 ---
         const forceWin = Math.random() < (winAccuracy / 100);
         
         if (category === 'Digits') {
@@ -811,46 +880,6 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
                         </div>
                       </div>
                     )}
-
-                    {numberOfRuns > 0 && (
-                      <div className={styles.summaryFooterContainer}>
-                        <div className={styles.metricsHeaderRow}>
-                          <span className={styles.whatsThisLink}>What's this?</span>
-                        </div>
-                        <div className={styles.metricsGrid}>
-                          <div>
-                            <div className={styles.metricTitle}>Total stake</div>
-                            <div className={styles.metricAmount}>{totalStake.toFixed(2)} USD</div>
-                          </div>
-                          <div>
-                            <div className={styles.metricTitle}>Total payout</div>
-                            <div className={styles.metricAmount}>{totalPayout.toFixed(2)} USD</div>
-                          </div>
-                          <div>
-                            <div className={styles.metricTitle}>No. of runs</div>
-                            <div className={styles.metricAmount}>{numberOfRuns}</div>
-                          </div>
-                          <div>
-                            <div className={styles.metricTitle}>Contracts lost</div>
-                            <div className={styles.metricAmount}>{contractsLost}</div>
-                          </div>
-                          <div>
-                            <div className={styles.metricTitle}>Contracts won</div>
-                            <div className={styles.metricAmount}>{contractsWon}</div>
-                          </div>
-                          <div>
-                            <div className={styles.metricTitle}>Total profit/loss</div>
-                            <div
-                              className={`${styles.metricAmount} ${
-                                totalProfitLoss >= 0 ? styles.metricAmountPositive : styles.metricAmountNegative
-                              }`}
-                            >
-                              {totalProfitLoss >= 0 ? `+${totalProfitLoss.toFixed(2)}` : totalProfitLoss.toFixed(2)} USD
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 )}
 
@@ -942,6 +971,47 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
                           </div>
                         </div>
                       ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Shared Summary Footer (Visible in Summary and Transactions) */}
+                {(drawerTab === 'summary' || drawerTab === 'transactions') && numberOfRuns > 0 && (
+                  <div className={styles.summaryFooterContainer}>
+                    <div className={styles.metricsHeaderRow}>
+                      <span className={styles.whatsThisLink}>What's this?</span>
+                    </div>
+                    <div className={styles.metricsGrid}>
+                      <div>
+                        <div className={styles.metricTitle}>Total stake</div>
+                        <div className={styles.metricAmount}>{totalStake.toFixed(2)} USD</div>
+                      </div>
+                      <div>
+                        <div className={styles.metricTitle}>Total payout</div>
+                        <div className={styles.metricAmount}>{totalPayout.toFixed(2)} USD</div>
+                      </div>
+                      <div>
+                        <div className={styles.metricTitle}>No. of runs</div>
+                        <div className={styles.metricAmount}>{numberOfRuns}</div>
+                      </div>
+                      <div>
+                        <div className={styles.metricTitle}>Contracts lost</div>
+                        <div className={styles.metricAmount}>{contractsLost}</div>
+                      </div>
+                      <div>
+                        <div className={styles.metricTitle}>Contracts won</div>
+                        <div className={styles.metricAmount}>{contractsWon}</div>
+                      </div>
+                      <div>
+                        <div className={styles.metricTitle}>Total profit/loss</div>
+                        <div
+                          className={`${styles.metricAmount} ${
+                            totalProfitLoss >= 0 ? styles.metricAmountPositive : styles.metricAmountNegative
+                          }`}
+                        >
+                          {totalProfitLoss >= 0 ? `+${totalProfitLoss.toFixed(2)}` : totalProfitLoss.toFixed(2)} USD
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}

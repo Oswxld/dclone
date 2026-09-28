@@ -64,7 +64,7 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
       cfdsUsd: cfdsVal,
       optionsUsd: optionsVal,
       walletUsd: walletVal,
-      walletUsdt: 350.0,
+      walletUsdt: 0,
       p2pUsd: p2pVal,
       lastUpdated: ' just now',
     };
