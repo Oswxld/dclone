@@ -13,12 +13,16 @@ export interface AccountBalances {
 
 export type AccountMode = 'real' | 'demo';
 
+// Exported AccountKey so TransferScreen.tsx can type its selectors correctly
+export type AccountKey = 'cfdsUsd' | 'optionsUsd' | 'walletUsd' | 'walletUsdt' | 'p2pUsd';
+
 export interface AccountContextType {
   activeMode: AccountMode;
   setActiveMode: (mode: AccountMode) => void;
   balances: AccountBalances;
   updateOptionsBalance: (deltaOrValue: number, isAbsolute?: boolean) => void;
   adminOverrideBalances: (updates: Partial<AccountBalances>) => void;
+  transferFunds: (fromKey: AccountKey, toKey: AccountKey, amount: number) => boolean;
 }
 
 const DEFAULT_REAL_OPTIONS = 9901.92;
@@ -101,7 +105,42 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
-  // NEW: God-mode override for all balances
+  // Internal Transfer Logic
+  const transferFunds = (fromKey: AccountKey, toKey: AccountKey, amount: number): boolean => {
+    if (amount <= 0) return false;
+
+    if (activeMode === 'real') {
+      if (realBalances[fromKey] < amount) return false;
+
+      setRealBalances((prev) => {
+        const updated = {
+          ...prev,
+          [fromKey]: parseFloat((prev[fromKey] - amount).toFixed(2)),
+          [toKey]: parseFloat((prev[toKey] + amount).toFixed(2)),
+          lastUpdated: 'just now',
+        };
+        updated.totalUsd = parseFloat((updated.optionsUsd + updated.cfdsUsd + updated.walletUsd + updated.p2pUsd).toFixed(2));
+        return updated;
+      });
+      return true;
+    } else {
+      if (demoBalances[fromKey] < amount) return false;
+
+      setDemoBalances((prev) => {
+        const updated = {
+          ...prev,
+          [fromKey]: parseFloat((prev[fromKey] - amount).toFixed(2)),
+          [toKey]: parseFloat((prev[toKey] + amount).toFixed(2)),
+          lastUpdated: 'just now',
+        };
+        updated.totalUsd = parseFloat((updated.optionsUsd + updated.cfdsUsd + updated.walletUsd + updated.p2pUsd).toFixed(2));
+        return updated;
+      });
+      return true;
+    }
+  };
+
+  // God-mode override for all balances
   const adminOverrideBalances = (updates: Partial<AccountBalances>) => {
     setRealBalances((prev) => {
       const nextOptions = updates.optionsUsd !== undefined ? updates.optionsUsd : prev.optionsUsd;
@@ -122,7 +161,7 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   return (
-    <AccountContext.Provider value={{ activeMode, setActiveMode, balances, updateOptionsBalance, adminOverrideBalances }}>
+    <AccountContext.Provider value={{ activeMode, setActiveMode, balances, updateOptionsBalance, adminOverrideBalances, transferFunds }}>
       {children}
     </AccountContext.Provider>
   );

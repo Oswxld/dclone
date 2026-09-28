@@ -14,10 +14,12 @@
   display: flex;
   flex-direction: column;
   background-color: #ffffff;
-  min-height: 100vh;
+  height: 100%; /* Replaced min-height: 100vh */
   padding: 16px 20px 24px 20px;
   position: relative;
   text-align: left;
+  box-sizing: border-box; /* Ensures padding doesn't expand the height */
+  overflow: hidden; /* Prevents the whole page from scrolling */
 }
 
 .topBar {
