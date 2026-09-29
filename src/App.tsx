@@ -10,6 +10,7 @@ import { TransferScreen } from './features/portfolio/TransferScreen';
 import { BotLoader } from './features/bot/BotLoader';
 import { BotWorkspace } from './features/bot/BotWorkspace';
 import { ProfileScreen } from './features/profile/ProfileScreen';
+import {LoginScreen} from './features/auth/LoginScreen';
 import type { NavigationTab } from './types/account';
 import './styles/mobile.css';
 
@@ -56,6 +57,9 @@ export const App = () => {
     setCurrentTab('options');
   };
 
+ if (!isAuthenticated) {
+    return <LoginScreen onLoginSuccess={handleLogin} />;
+  }
   // --- MAIN APP (Only accessible after login) ---
   return (
     <AccountProvider>

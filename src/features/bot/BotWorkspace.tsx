@@ -752,7 +752,7 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
 
             {/* Slide-out Simulation Drawer */}
             {drawerOpen && (
-              <div className={styles.drawerBackdrop}>
+              <div className={styles.drawerBackdrop} style={{ overflow: 'hidden' }}>
                 <div className={styles.drawerHeader}>
                   
                   {/* Top Row with Chevron and Reset */}
@@ -792,188 +792,191 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
                   </ul>
                 </div>
 
-                {drawerTab === 'summary' && (
-                  <div className={styles.summaryTabWrapper}>
-                    {(simPhase === 'IDLE' || simPhase === 'BUYING') && numberOfRuns === 0 && (
-                      <div className={styles.idleStateWrapper}>
-                        <p>When you’re ready to trade, hit <strong>Run</strong>. You’ll be able to track your bot’s performance here.</p>
-                      </div>
-                    )}
+                {/* --- SCROLLABLE MIDDLE ZONE --- */}
+                <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+                  {drawerTab === 'summary' && (
+                    <div className={styles.summaryTabWrapper}>
+                      {(simPhase === 'IDLE' || simPhase === 'BUYING') && numberOfRuns === 0 && (
+                        <div className={styles.idleStateWrapper}>
+                          <p>When you’re ready to trade, hit <strong>Run</strong>. You’ll be able to track your bot’s performance here.</p>
+                        </div>
+                      )}
 
-                    {(simPhase === 'BOUGHT' || ((simPhase === 'IDLE' || simPhase === 'BUYING') && numberOfRuns > 0)) && (
-                      <div className={styles.liveDashboard}>
-                        <div className={styles.dashHeaderRow}>
-                          <div className={styles.dashMarket}>
-                            <MarketIcon market={activeContract.market} className={styles.marketIconPng} />
-                            <span>{activeContract.market}</span>
+                      {(simPhase === 'BOUGHT' || ((simPhase === 'IDLE' || simPhase === 'BUYING') && numberOfRuns > 0)) && (
+                        <div className={styles.liveDashboard}>
+                          <div className={styles.dashHeaderRow}>
+                            <div className={styles.dashMarket}>
+                              <MarketIcon market={activeContract.market} className={styles.marketIconPng} />
+                              <span>{activeContract.market}</span>
+                            </div>
+                            <div className={styles.dashAction}>
+                              <ActionIcon action={activeContract.action} className={styles.actionSvgIcon} />
+                              <span style={{ color: ['Rise', 'Fall', 'Under', 'Even'].includes(activeContract.action) ? (['Rise', 'Even', 'Over'].includes(activeContract.action) ? '#00a8a8' : '#ff444f') : '#333333' }}>
+                                {activeContract.action}
+                              </span>
+                            </div>
                           </div>
-                          <div className={styles.dashAction}>
-                            <ActionIcon action={activeContract.action} className={styles.actionSvgIcon} />
-                            <span style={{ color: ['Rise', 'Fall', 'Under', 'Even'].includes(activeContract.action) ? (['Rise', 'Even', 'Over'].includes(activeContract.action) ? '#00a8a8' : '#ff444f') : '#333333' }}>
-                              {activeContract.action}
-                            </span>
+
+                          <div className={styles.dashTickTracker}>
+                            <div className={styles.dashTickLabel}>Tick {activeContract.tickIndex}</div>
+                            <div className={styles.dashTickBarBg}>
+                              <div 
+                                className={styles.dashTickBarFill} 
+                                style={{ width: `${(activeContract.tickIndex / Math.max(1, currentDuration)) * 100}%` }}
+                              />
+                            </div>
+                          </div>
+
+                          <div className={styles.currencyPill}>USD</div>
+                          <div className={styles.dashMetrics2x2}>
+                            <div className={styles.dashMetricItem}>
+                              <span className={styles.dashMetricLabel}>Total profit/loss:</span>
+                              <span className={`${styles.dashMetricVal} ${activeContract.profit >= 0 ? styles.valGreen : styles.valRed}`}>
+                                {activeContract.profit >= 0 ? `+${activeContract.profit.toFixed(2)}` : activeContract.profit.toFixed(2)} {activeContract.profit >= 0 ? '▲' : '▼'}
+                              </span>
+                            </div>
+                            <div className={styles.dashMetricItem}>
+                              <span className={styles.dashMetricLabel}>Contract value:</span>
+                              <span className={`${styles.dashMetricVal} ${styles.valGreen}`}>
+                                {activeContract.currentValue.toFixed(2)} ▲
+                              </span>
+                            </div>
+                            <div className={styles.dashMetricItem}>
+                              <span className={styles.dashMetricLabel}>Stake:</span>
+                              <span className={styles.dashMetricValPlain}>{activeContract.stake.toFixed(2)}</span>
+                            </div>
+                            <div className={styles.dashMetricItem}>
+                              <span className={styles.dashMetricLabel}>Potential payout:</span>
+                              <span className={styles.dashMetricValPlain}>{activeContract.potentialPayout.toFixed(2)}</span>
+                            </div>
+                          </div>
+                          <div className={styles.resaleText}>Resale not offered</div>
+                        </div>
+                      )}
+
+                      {(simPhase === 'WON' || simPhase === 'LOST') && (
+                        <div className={`${styles.closedDashboard} ${simPhase === 'WON' ? styles.closedWinBg : styles.closedLossBg}`}>
+                          <div className={styles.dashHeaderRow} style={{ opacity: 0.3 }}>
+                            <div className={styles.dashMarket}>
+                              <MarketIcon market={activeContract.market} className={styles.marketIconPng} />
+                              <span>{activeContract.market}</span>
+                            </div>
+                            <div className={styles.dashAction}>
+                              <ActionIcon action={activeContract.action} className={styles.actionSvgIcon} />
+                              <span style={{ color: ['Rise', 'Fall', 'Under', 'Even'].includes(activeContract.action) ? (['Rise', 'Even', 'Over'].includes(activeContract.action) ? '#00a8a8' : '#ff444f') : '#333333' }}>
+                                {activeContract.action}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className={styles.closedCenterStage}>
+                            <div className={`${styles.closedStatusPill} ${simPhase === 'WON' ? styles.valGreen : styles.valRed}`}>
+                              <div className={`${styles.maskFlag} ${simPhase === 'WON' ? styles.bgGreen : styles.bgRed}`} />
+                              <span>Closed</span>
+                            </div>
+                            <div className={`${styles.closedMassiveAmount} ${simPhase === 'WON' ? styles.valGreen : styles.valRed}`}>
+                              {simPhase === 'WON' 
+                                ? `+${(activeContract.potentialPayout - activeContract.stake).toFixed(2)}` 
+                                : `-${activeContract.stake.toFixed(2)}`} USD
+                            </div>
                           </div>
                         </div>
-
-                        <div className={styles.dashTickTracker}>
-                          <div className={styles.dashTickLabel}>Tick {activeContract.tickIndex}</div>
-                          <div className={styles.dashTickBarBg}>
-                            <div 
-                              className={styles.dashTickBarFill} 
-                              style={{ width: `${(activeContract.tickIndex / Math.max(1, currentDuration)) * 100}%` }}
-                            />
-                          </div>
-                        </div>
-
-                        <div className={styles.currencyPill}>USD</div>
-                        <div className={styles.dashMetrics2x2}>
-                          <div className={styles.dashMetricItem}>
-                            <span className={styles.dashMetricLabel}>Total profit/loss:</span>
-                            <span className={`${styles.dashMetricVal} ${activeContract.profit >= 0 ? styles.valGreen : styles.valRed}`}>
-                              {activeContract.profit >= 0 ? `+${activeContract.profit.toFixed(2)}` : activeContract.profit.toFixed(2)} {activeContract.profit >= 0 ? '▲' : '▼'}
-                            </span>
-                          </div>
-                          <div className={styles.dashMetricItem}>
-                            <span className={styles.dashMetricLabel}>Contract value:</span>
-                            <span className={`${styles.dashMetricVal} ${styles.valGreen}`}>
-                              {activeContract.currentValue.toFixed(2)} ▲
-                            </span>
-                          </div>
-                          <div className={styles.dashMetricItem}>
-                            <span className={styles.dashMetricLabel}>Stake:</span>
-                            <span className={styles.dashMetricValPlain}>{activeContract.stake.toFixed(2)}</span>
-                          </div>
-                          <div className={styles.dashMetricItem}>
-                            <span className={styles.dashMetricLabel}>Potential payout:</span>
-                            <span className={styles.dashMetricValPlain}>{activeContract.potentialPayout.toFixed(2)}</span>
-                          </div>
-                        </div>
-                        <div className={styles.resaleText}>Resale not offered</div>
-                      </div>
-                    )}
-
-                    {(simPhase === 'WON' || simPhase === 'LOST') && (
-                      <div className={`${styles.closedDashboard} ${simPhase === 'WON' ? styles.closedWinBg : styles.closedLossBg}`}>
-                        <div className={styles.dashHeaderRow} style={{ opacity: 0.3 }}>
-                          <div className={styles.dashMarket}>
-                            <MarketIcon market={activeContract.market} className={styles.marketIconPng} />
-                            <span>{activeContract.market}</span>
-                          </div>
-                          <div className={styles.dashAction}>
-                            <ActionIcon action={activeContract.action} className={styles.actionSvgIcon} />
-                            <span style={{ color: ['Rise', 'Fall', 'Under', 'Even'].includes(activeContract.action) ? (['Rise', 'Even', 'Over'].includes(activeContract.action) ? '#00a8a8' : '#ff444f') : '#333333' }}>
-                              {activeContract.action}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className={styles.closedCenterStage}>
-                          <div className={`${styles.closedStatusPill} ${simPhase === 'WON' ? styles.valGreen : styles.valRed}`}>
-                            <div className={`${styles.maskFlag} ${simPhase === 'WON' ? styles.bgGreen : styles.bgRed}`} />
-                            <span>Closed</span>
-                          </div>
-                          <div className={`${styles.closedMassiveAmount} ${simPhase === 'WON' ? styles.valGreen : styles.valRed}`}>
-                            {simPhase === 'WON' 
-                              ? `+${(activeContract.potentialPayout - activeContract.stake).toFixed(2)}` 
-                              : `-${activeContract.stake.toFixed(2)}`} USD
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {drawerTab === 'transactions' && (
-                  <div className={styles.transactionsWrapper}>
-                    <div className={styles.transControls}>
-                      <button type="button" className={styles.transOutlineBtn}>Download</button>
-                      <button type="button" className={styles.transOutlineBtn}>View Detail</button>
+                      )}
                     </div>
-                    <table className={styles.transTable}>
-                      <thead>
-                        <tr>
-                          <th>Type</th>
-                          <th>Entry/Exit spot</th>
-                          <th>Buy price and P/L</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {transactions.map((tx) => (
-                          <tr key={tx.id} className={styles.transTableRow}>
-                            <td>
-                              <div className={`${styles.typeColumn} ${tx.isPending ? styles.slideInCell : ''}`}>
-                                <MarketIcon market={tx.market} className={styles.marketIconSmall} />
-                                <ActionIcon action={tx.type} className={styles.actionSvgIconSmall} />
-                              </div>
-                            </td>
-                            <td>
-                              <div className={`${styles.spotStack} ${tx.isPending ? styles.slideInCell : ''}`}>
-                                <div className={styles.spotLine}>
-                                  <div className={styles.spotCircleRed} />
-                                  <span>{tx.entrySpot.toFixed(2)}</span>
-                                 </div>
-                                <div className={styles.spotLine}>
-                                  <div className={styles.spotCircleGray} />
+                  )}
+
+                  {drawerTab === 'transactions' && (
+                    <div className={styles.transactionsWrapper}>
+                      <div className={styles.transControls}>
+                        <button type="button" className={styles.transOutlineBtn}>Download</button>
+                        <button type="button" className={styles.transOutlineBtn}>View Detail</button>
+                      </div>
+                      <table className={styles.transTable}>
+                        <thead>
+                          <tr>
+                            <th>Type</th>
+                            <th>Entry/Exit spot</th>
+                            <th>Buy price and P/L</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {transactions.map((tx) => (
+                            <tr key={tx.id} className={styles.transTableRow}>
+                              <td>
+                                <div className={`${styles.typeColumn} ${tx.isPending ? styles.slideInCell : ''}`}>
+                                  <MarketIcon market={tx.market} className={styles.marketIconSmall} />
+                                  <ActionIcon action={tx.type} className={styles.actionSvgIconSmall} />
+                                </div>
+                              </td>
+                              <td>
+                                <div className={`${styles.spotStack} ${tx.isPending ? styles.slideInCell : ''}`}>
+                                  <div className={styles.spotLine}>
+                                    <div className={styles.spotCircleRed} />
+                                    <span>{tx.entrySpot.toFixed(2)}</span>
+                                   </div>
+                                  <div className={styles.spotLine}>
+                                    <div className={styles.spotCircleGray} />
+                                    {tx.isPending ? (
+                                      <div className={styles.skeletonBar} />
+                                    ) : (
+                                      <span>{tx.exitSpot.toFixed(2)}</span>
+                                    )}
+                                  </div>
+                                </div>
+                              </td>
+                              <td style={{ textAlign: 'right' }}>
+                                <div className={tx.isPending ? styles.slideInCell : ''}>
+                                  <div>{tx.stake.toFixed(2)} USD</div>
                                   {tx.isPending ? (
-                                    <div className={styles.skeletonBar} />
+                                    <div className={styles.skeletonBarRight} />
                                   ) : (
-                                    <span>{tx.exitSpot.toFixed(2)}</span>
+                                    <div style={{ color: tx.isWin ? '#00a8a8' : '#ff444f', fontWeight: 400 }}>
+                                      {tx.profit >= 0 ? `+${tx.profit.toFixed(2)}` : tx.profit.toFixed(2)} USD
+                                    </div>
                                   )}
                                 </div>
-                              </div>
-                            </td>
-                            <td style={{ textAlign: 'right' }}>
-                              <div className={tx.isPending ? styles.slideInCell : ''}>
-                                <div>{tx.stake.toFixed(2)} USD</div>
-                                {tx.isPending ? (
-                                  <div className={styles.skeletonBarRight} />
-                                ) : (
-                                  <div style={{ color: tx.isWin ? '#00a8a8' : '#ff444f', fontWeight: 400 }}>
-                                    {tx.profit >= 0 ? `+${tx.profit.toFixed(2)}` : tx.profit.toFixed(2)} USD
-                                  </div>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
 
-                {drawerTab === 'journal' && (
-                  <div className={styles.journalWrapper}>
-                    <div className={styles.journalToolsContainer}>
-                      <button type="button" className={styles.journalDownloadBtn}>Download</button>
-                      <div className={styles.journalFilterContainer}>
-                        <span className={styles.journalFilterLabel}>Filters</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16px" height="16px" viewBox="0 0 11 18" fill="currentColor">
-                          <path d="M.25 5.75C.25 5.352.578 5 1 5h9c.398 0 .75.352.75.75 0 .422-.352.75-.75.75H1a.74.74 0 0 1-.75-.75m1.5 3.75c0-.398.328-.75.75-.75h6c.398 0 .75.352.75.75 0 .422-.352.75-.75.75h-6a.74.74 0 0 1-.75-.75M7 13.25c0 .422-.352.75-.75.75h-1.5a.74.74 0 0 1-.75-.75c0-.398.328-.75.75-.75h1.5c.398 0 .75.352.75.75"></path>
-                        </svg>
+                  {drawerTab === 'journal' && (
+                    <div className={styles.journalWrapper}>
+                      <div className={styles.journalToolsContainer}>
+                        <button type="button" className={styles.journalDownloadBtn}>Download</button>
+                        <div className={styles.journalFilterContainer}>
+                          <span className={styles.journalFilterLabel}>Filters</span>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16px" height="16px" viewBox="0 0 11 18" fill="currentColor">
+                            <path d="M.25 5.75C.25 5.352.578 5 1 5h9c.398 0 .75.352.75.75 0 .422-.352.75-.75.75H1a.74.74 0 0 1-.75-.75m1.5 3.75c0-.398.328-.75.75-.75h6c.398 0 .75.352.75.75 0 .422-.352.75-.75.75h-6a.74.74 0 0 1-.75-.75M7 13.25c0 .422-.352.75-.75.75h-1.5a.74.74 0 0 1-.75-.75c0-.398.328-.75.75-.75h1.5c.398 0 .75.352.75.75"></path>
+                          </svg>
+                        </div>
+                      </div>
+                      <div className={styles.journalList}>
+                        {journalLogs.map((log) => (
+                          <div key={log.id} className={`${styles.journalItemRow} ${styles.slideInCell}`}>
+                            <div className={styles.journalItemContent}>
+                              {log.type === 'buy' && (
+                                <div><span className={styles.journalInfo}>Bought</span>: Contract purchased (ID: {log.contractId})</div>
+                              )}
+                              {log.type === 'profit' && (
+                                <div>Profit amount: <span className={styles.journalSuccess}>{log.amount?.toFixed(2)} USD</span></div>
+                              )}
+                              {log.type === 'loss' && (
+                                <div>Loss amount: <span className={styles.journalDanger}>{log.amount?.toFixed(2)} USD</span></div>
+                              )}
+                            </div>
+                            <div className={styles.journalTimestamp}>
+                              {log.timestamp}
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                    <div className={styles.journalList}>
-                      {journalLogs.map((log) => (
-                        <div key={log.id} className={`${styles.journalItemRow} ${styles.slideInCell}`}>
-                          <div className={styles.journalItemContent}>
-                            {log.type === 'buy' && (
-                              <div><span className={styles.journalInfo}>Bought</span>: Contract purchased (ID: {log.contractId})</div>
-                            )}
-                            {log.type === 'profit' && (
-                              <div>Profit amount: <span className={styles.journalSuccess}>{log.amount?.toFixed(2)} USD</span></div>
-                            )}
-                            {log.type === 'loss' && (
-                              <div>Loss amount: <span className={styles.journalDanger}>{log.amount?.toFixed(2)} USD</span></div>
-                            )}
-                          </div>
-                          <div className={styles.journalTimestamp}>
-                            {log.timestamp}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                  )}
+                </div>
 
                 {/* Shared Summary Footer (Visible in Summary and Transactions) */}
                 {(drawerTab === 'summary' || drawerTab === 'transactions') && (
