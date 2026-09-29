@@ -1,20 +1,19 @@
 import React, { useState } from 'react';
 import { useAccount } from '../../context/AccountContext';
-import usersData from '../../data/users.json';
 
 type ProfileScreenProps = {
   onBack: () => void;
   onLogout: () => void;
+  userFullName?: string; // Passed down globally from App.tsx
+  userEmail?: string;    // Passed down globally from App.tsx
 };
 
-export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onLogout }) => {
+export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onLogout, userFullName, userEmail }) => {
   const { balances, setActiveMode, adminOverrideBalances } = useAccount();
   
-  // Pull real data
-  const userEmail = localStorage.getItem('deriv_current_user');
-  const user = usersData.users.find(u => u.email === userEmail);
-  const fullName = user ? `${user.firstName} ${user.lastName}` : 'Oswald Ngate';
-  const displayEmail = user ? user.email : 'oscargikandi@gmail.com';
+  // Use dynamically retrieved Supabase Profile
+  const fullName = userFullName || 'Unknown User';
+  const displayEmail = userEmail || 'unknown@example.com';
 
   // --- SECRET ADMIN STATE ---
   const [showSecretModal, setShowSecretModal] = useState(false);

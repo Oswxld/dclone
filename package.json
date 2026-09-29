@@ -3,9 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-
   "homepage": "https://oswxld.github.io/dclone/",
-
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -14,13 +12,12 @@
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist"
   },
-
   "dependencies": {
+    "@supabase/supabase-js": "^2.117.2",
     "blockly": "^13.3.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
   },
-
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/react": "^19.2.18",

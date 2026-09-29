@@ -1,70 +1,93 @@
 import React, { useState } from 'react';
 import styles from './LoginScreen.module.css';
-import usersData from '../../data/users.json';
+import { supabase } from '../../lib/supabase';
+import type { AuthState } from '../../App';
 
 type LoginScreenProps = {
-  onLoginSuccess?: (identifier: string) => void;
+  authStatus: AuthState;
+  localDeviceId: string;
+  onCheckAgain: () => void;
+  onLogout: () => void;
 };
 
-// Helper to reliably generate and fetch a persistent device fingerprint
-const getDeviceFingerprint = () => {
-  let id = localStorage.getItem('deriv_device_id');
-  if (!id) {
-    // Generate a secure random ID, fallback to Math.random for older browser support
-    id = typeof crypto !== 'undefined' && crypto.randomUUID 
-      ? crypto.randomUUID() 
-      : 'dev-' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-    localStorage.setItem('deriv_device_id', id);
-  }
-  return id;
-};
-
-export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
-  // Login State
+export const LoginScreen: React.FC<LoginScreenProps> = ({ authStatus, localDeviceId, onCheckAgain, onLogout }) => {
+  // Toggle between Login and Register
+  const [isRegister, setIsRegister] = useState(false);
+  
+  // Form State
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  
+  // Focus State
+  const [isFullNameFocused, setIsFullNameFocused] = useState(false);
   const [isEmailFocused, setIsEmailFocused] = useState(false);
   const [isPasswordFocused, setIsPasswordFocused] = useState(false);
+  
+  // Messages & UI State
   const [errorMsg, setErrorMsg] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
 
-  // Fingerprint State
-  const [authStep, setAuthStep] = useState<'login' | 'pending_device'>('login');
-  const [localDeviceId, setLocalDeviceId] = useState('');
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
+    setSuccessMsg('');
     const trimmedEmail = email.trim();
     
+    if (isRegister && !fullName.trim()) {
+      setErrorMsg('Please enter your full name.');
+      return;
+    }
+
     if (!trimmedEmail || !password) {
       setErrorMsg('Please enter both email and password.');
       return;
     }
 
-    const user = usersData.users.find(
-      (u) => u.email === trimmedEmail && u.password === password
-    );
+    setIsLoading(true);
 
-    if (user) {
-      const deviceId = getDeviceFingerprint();
+    if (isRegister) {
+      const { error } = await supabase.auth.signUp({
+        email: trimmedEmail,
+        password,
+        options: {
+          data: { full_name: fullName.trim() }
+        }
+      });
 
-      if (user.deviceId === "") {
-        // Step 1: User is valid, but device is unregistered in users.json.
-        // Show them the ID so they can send it to you.
-        setLocalDeviceId(deviceId);
-        setAuthStep('pending_device');
-      } else if (user.deviceId === deviceId) {
-        // Step 2: Perfect match. Let them in.
-        onLoginSuccess?.(trimmedEmail);
+      if (error) {
+        setErrorMsg(error.message);
       } else {
-        // Step 3: Device mismatch. They are trying to use someone else's account.
-        setErrorMsg("Unauthorized device. This account is permanently bound to another device.");
+        setSuccessMsg('Registration successful! Please check your email to confirm your address before logging in.');
+        setIsRegister(false); // Switch back to login view
       }
     } else {
-      setErrorMsg("Invalid email or password.");
+      const { error } = await supabase.auth.signInWithPassword({
+        email: trimmedEmail,
+        password
+      });
+
+      if (error) {
+        setErrorMsg(error.message);
+      }
+    }
+    
+    setIsLoading(false);
+  };
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(localDeviceId);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy ID', err);
     }
   };
 
+  const isFullNameFloating = isFullNameFocused || fullName.length > 0;
   const isEmailFloating = isEmailFocused || email.length > 0;
   const isPasswordFloating = isPasswordFocused || password.length > 0;
 
@@ -100,65 +123,87 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
           </div>
         </div>
 
-        {/* Dynamic View: Login vs Device Registration */}
+        {/* Dynamic View Logic */}
         <div className={styles.mainBody}>
-          {authStep === 'login' ? (
+          {authStatus === 'unauthenticated' ? (
             <>
-              <h1 className={styles.title}>Welcome back</h1>
+              <h1 className={styles.title}>{isRegister ? 'Create an account' : 'Welcome back'}</h1>
 
-              {/* Social Login Buttons */}
-              <div className={styles.socialGroup}>
-                <button type="button" className={styles.socialBtn}>
-                  <span className={styles.socialIcon}>
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 32 32" width="20" height="20">
-                      <clipPath id="google-clip"><path fill="#fff" d="M0 0h32v32H0z"></path></clipPath>
-                      <g clipPath="url(#google-clip)">
-                        <path fill="#3E82F1" d="M32 16.375c0-1.097-.1-2.194-.294-3.273H16.325v6.186h8.787a7.34 7.34 0 0 1-3.256 4.829l5.274 4.02C30.22 25.348 32 21.248 32 16.374"></path>
-                        <path fill="#32A753" d="M21.858 24.119c-1.458.962-3.33 1.529-5.53 1.529-4.257 0-7.852-2.815-9.136-6.6l-5.458 4.145c2.77 5.404 8.42 8.82 14.593 8.812 4.412 0 8.108-1.43 10.805-3.876z"></path>
-                        <path fill="#F9BB00" d="M7.19 12.966 1.735 8.82a15.77 15.77 0 0 0 0 14.377l5.457-4.145a9.35 9.35 0 0 1 0-6.087"></path>
-                        <path fill="#E74133" d="M16.327 0C10.154 0 4.503 3.417 1.734 8.82l5.457 4.146c1.284-3.786 4.88-6.6 9.136-6.6 2.394 0 4.55.81 6.237 2.392l4.687-4.595C24.426 1.583 20.73 0 16.327 0"></path>
-                      </g>
-                    </svg>
-                  </span>
-                  <span className={styles.socialText}>Log in with Google</span>
-                  <span className={styles.socialIcon}></span>
-                </button>
+              {/* Social Login Buttons (Hidden during Registration) */}
+              {!isRegister && (
+                <>
+                  <div className={styles.socialGroup}>
+                    <button type="button" className={styles.socialBtn}>
+                      <span className={styles.socialIcon}>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 32 32" width="20" height="20">
+                          <clipPath id="google-clip"><path fill="#fff" d="M0 0h32v32H0z"></path></clipPath>
+                          <g clipPath="url(#google-clip)">
+                            <path fill="#3E82F1" d="M32 16.375c0-1.097-.1-2.194-.294-3.273H16.325v6.186h8.787a7.34 7.34 0 0 1-3.256 4.829l5.274 4.02C30.22 25.348 32 21.248 32 16.374"></path>
+                            <path fill="#32A753" d="M21.858 24.119c-1.458.962-3.33 1.529-5.53 1.529-4.257 0-7.852-2.815-9.136-6.6l-5.458 4.145c2.77 5.404 8.42 8.82 14.593 8.812 4.412 0 8.108-1.43 10.805-3.876z"></path>
+                            <path fill="#F9BB00" d="M7.19 12.966 1.735 8.82a15.77 15.77 0 0 0 0 14.377l5.457-4.145a9.35 9.35 0 0 1 0-6.087"></path>
+                            <path fill="#E74133" d="M16.327 0C10.154 0 4.503 3.417 1.734 8.82l5.457 4.146c1.284-3.786 4.88-6.6 9.136-6.6 2.394 0 4.55.81 6.237 2.392l4.687-4.595C24.426 1.583 20.73 0 16.327 0"></path>
+                          </g>
+                        </svg>
+                      </span>
+                      <span className={styles.socialText}>Log in with Google</span>
+                      <span className={styles.socialIcon}></span>
+                    </button>
 
-                <button type="button" className={styles.socialBtn}>
-                  <span className={styles.socialIcon}>
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 32 32" width="20" height="20">
-                      <clipPath id="fb-clip"><path fill="#fff" d="M0 0h32v32H0z"></path></clipPath>
-                      <g clipPath="url(#fb-clip)">
-                        <path fill="#1877F2" fillRule="evenodd" d="M16 32c8.837 0 16-7.163 16-16S24.837 0 16 0 0 7.163 0 16s7.163 16 16 16m2.5-11.249v11.055a16.1 16.1 0 0 1-5 0V20.75H9.438v-4.653H13.5V12.55c0-4.034 2.389-6.263 6.043-6.263 1.751 0 3.582.315 3.582.315v3.961h-2.018c-1.987 0-2.607 1.241-2.607 2.514v3.02h4.438l-.71 4.653z" clipRule="evenodd"></path>
-                        <path fill="#fff" d="M18.5 20.751v11.055a16.1 16.1 0 0 1-5 0V20.75H9.438v-4.653H13.5V12.55c0-4.034 2.389-6.263 6.043-6.263 1.751 0 3.582.315 3.582.315v3.961h-2.018c-1.987 0-2.607 1.241-2.607 2.514v3.02h4.438l-.71 4.653z"></path>
-                      </g>
-                    </svg>
-                  </span>
-                  <span className={styles.socialText}>Log in with Facebook</span>
-                  <span className={styles.socialIcon}></span>
-                </button>
+                    <button type="button" className={styles.socialBtn}>
+                      <span className={styles.socialIcon}>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 32 32" width="20" height="20">
+                          <clipPath id="fb-clip"><path fill="#fff" d="M0 0h32v32H0z"></path></clipPath>
+                          <g clipPath="url(#fb-clip)">
+                            <path fill="#1877F2" fillRule="evenodd" d="M16 32c8.837 0 16-7.163 16-16S24.837 0 16 0 0 7.163 0 16s7.163 16 16 16m2.5-11.249v11.055a16.1 16.1 0 0 1-5 0V20.75H9.438v-4.653H13.5V12.55c0-4.034 2.389-6.263 6.043-6.263 1.751 0 3.582.315 3.582.315v3.961h-2.018c-1.987 0-2.607 1.241-2.607 2.514v3.02h4.438l-.71 4.653z" clipRule="evenodd"></path>
+                            <path fill="#fff" d="M18.5 20.751v11.055a16.1 16.1 0 0 1-5 0V20.75H9.438v-4.653H13.5V12.55c0-4.034 2.389-6.263 6.043-6.263 1.751 0 3.582.315 3.582.315v3.961h-2.018c-1.987 0-2.607 1.241-2.607 2.514v3.02h4.438l-.71 4.653z"></path>
+                          </g>
+                        </svg>
+                      </span>
+                      <span className={styles.socialText}>Log in with Facebook</span>
+                      <span className={styles.socialIcon}></span>
+                    </button>
 
-                <button type="button" className={styles.socialBtn}>
-                  <span className={styles.socialIcon}>
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 32 32" width="20" height="20">
-                      <path d="M22.248 0c.195 1.894-.542 3.749-1.627 5.129-1.125 1.34-2.907 2.405-4.69 2.248-.233-1.815.66-3.746 1.667-4.93C18.721 1.066 20.66.08 22.248 0m-4.184 8.672c1.158-.464 2.59-1.038 4.165-.943 1.006.08 3.904.395 5.76 3.185l-.06.041c-.476.317-3.378 2.248-3.342 6.057.036 4.537 3.678 6.238 4.16 6.463l.053.026-.01.032c-.092.3-.72 2.36-2.153 4.49-1.315 1.97-2.668 3.896-4.833 3.935-1.02.02-1.706-.28-2.422-.592-.75-.326-1.53-.667-2.757-.667-1.286 0-2.104.351-2.891.69-.68.29-1.336.572-2.25.61-2.087.077-3.67-2.087-4.985-4.053-2.707-3.973-4.755-11.21-1.971-16.088C5.88 9.42 8.354 7.887 11.02 7.847c1.164-.022 2.278.426 3.25.816.739.297 1.396.562 1.93.562.485 0 1.118-.254 1.864-.553"></path>
-                    </svg>
-                  </span>
-                  <span className={styles.socialText}>Log in with Apple</span>
-                  <span className={styles.socialIcon}></span>
-                </button>
-              </div>
+                    <button type="button" className={styles.socialBtn}>
+                      <span className={styles.socialIcon}>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 32 32" width="20" height="20">
+                          <path d="M22.248 0c.195 1.894-.542 3.749-1.627 5.129-1.125 1.34-2.907 2.405-4.69 2.248-.233-1.815.66-3.746 1.667-4.93C18.721 1.066 20.66.08 22.248 0m-4.184 8.672c1.158-.464 2.59-1.038 4.165-.943 1.006.08 3.904.395 5.76 3.185l-.06.041c-.476.317-3.378 2.248-3.342 6.057.036 4.537 3.678 6.238 4.16 6.463l.053.026-.01.032c-.092.3-.72 2.36-2.153 4.49-1.315 1.97-2.668 3.896-4.833 3.935-1.02.02-1.706-.28-2.422-.592-.75-.326-1.53-.667-2.757-.667-1.286 0-2.104.351-2.891.69-.68.29-1.336.572-2.25.61-2.087.077-3.67-2.087-4.985-4.053-2.707-3.973-4.755-11.21-1.971-16.088C5.88 9.42 8.354 7.887 11.02 7.847c1.164-.022 2.278.426 3.25.816.739.297 1.396.562 1.93.562.485 0 1.118-.254 1.864-.553"></path>
+                        </svg>
+                      </span>
+                      <span className={styles.socialText}>Log in with Apple</span>
+                      <span className={styles.socialIcon}></span>
+                    </button>
+                  </div>
 
-              {/* Divider */}
-              <div className={styles.divider}>
-                <div className={styles.line}></div>
-                <span className={styles.orText}>or</span>
-                <div className={styles.line}></div>
-              </div>
+                  {/* Divider */}
+                  <div className={styles.divider}>
+                    <div className={styles.line}></div>
+                    <span className={styles.orText}>or</span>
+                    <div className={styles.line}></div>
+                  </div>
+                </>
+              )}
 
               {/* Form with Floating Labels */}
               <form onSubmit={handleSubmit} className={styles.form}>
                 
+                {/* Full Name Field (Only on Register) */}
+                {isRegister && (
+                  <div className={`${styles.inputGroup} ${errorMsg ? styles.inputGroupError : isFullNameFocused ? styles.inputGroupFocused : ''}`}>
+                    <label htmlFor="login-fullname" className={`${styles.label} ${isFullNameFloating ? styles.labelFloating : styles.labelCenter}`}>
+                      Full Name
+                    </label>
+                    <input
+                      id="login-fullname"
+                      type="text"
+                      value={fullName}
+                      onChange={(e) => { setFullName(e.target.value); setErrorMsg(''); }}
+                      onFocus={() => setIsFullNameFocused(true)}
+                      onBlur={() => setIsFullNameFocused(false)}
+                      className={`${styles.input} ${isFullNameFloating ? styles.inputFloating : ''}`}
+                    />
+                  </div>
+                )}
+
                 {/* Email Field */}
                 <div className={`${styles.inputGroup} ${errorMsg ? styles.inputGroupError : isEmailFocused ? styles.inputGroupFocused : ''}`}>
                   <label htmlFor="login-email" className={`${styles.label} ${isEmailFloating ? styles.labelFloating : styles.labelCenter}`}>
@@ -168,10 +213,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                     id="login-email"
                     type="email"
                     value={email}
-                    onChange={(e) => {
-                      setEmail(e.target.value);
-                      setErrorMsg('');
-                    }}
+                    onChange={(e) => { setEmail(e.target.value); setErrorMsg(''); }}
                     onFocus={() => setIsEmailFocused(true)}
                     onBlur={() => setIsEmailFocused(false)}
                     className={`${styles.input} ${isEmailFloating ? styles.inputFloating : ''}`}
@@ -187,35 +229,38 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                     id="login-password"
                     type="password"
                     value={password}
-                    onChange={(e) => {
-                      setPassword(e.target.value);
-                      setErrorMsg('');
-                    }}
+                    onChange={(e) => { setPassword(e.target.value); setErrorMsg(''); }}
                     onFocus={() => setIsPasswordFocused(true)}
                     onBlur={() => setIsPasswordFocused(false)}
                     className={`${styles.input} ${isPasswordFloating ? styles.inputFloating : ''}`}
                   />
                 </div>
                 
-                {/* Error Message */}
+                {/* Error & Success Messages */}
                 {errorMsg && <p className={styles.errorText}>{errorMsg}</p>}
+                {successMsg && <p style={{ color: '#00a8a8', fontSize: '13px', marginTop: '8px' }}>{successMsg}</p>}
 
                 {/* Submit Action */}
-                <button type="submit" className={styles.submitBtn}>
-                  Log in
+                <button type="submit" className={styles.submitBtn} disabled={isLoading}>
+                  {isLoading ? 'Please wait...' : isRegister ? 'Register' : 'Log in'}
                 </button>
               </form>
 
-              {/* Sign up Footer Link */}
+              {/* Toggle Register/Login */}
               <p className={styles.footerText}>
-                Don't have an account yet?{' '}
-                <a href="#signup" className={styles.footerLink}>
-                  Sign up
-                </a>
+                {isRegister ? 'Already have an account? ' : "Don't have an account yet? "}
+                <button 
+                  type="button" 
+                  className={styles.footerLink}
+                  onClick={() => { setIsRegister(!isRegister); setErrorMsg(''); setSuccessMsg(''); }}
+                  style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', font: 'inherit' }}
+                >
+                  {isRegister ? 'Log in' : 'Sign up'}
+                </button>
               </p>
             </>
-          ) : (
-            // --- PENDING REGISTRATION VIEW ---
+          ) : authStatus === 'device_pending' ? (
+            // --- PENDING DEVICE REGISTRATION VIEW ---
             <div className={styles.pendingContainer}>
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={styles.warningIcon}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
@@ -225,22 +270,68 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                 This device is not yet registered to your account. Please send the Installation ID below to the administrator to gain access.
               </p>
               
-              <div className={styles.idBox}>
-                <span className={styles.idLabel}>Installation ID</span>
-                <span className={styles.idValue}>{localDeviceId}</span>
+              <div className={styles.idBox} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                  <span className={styles.idLabel}>Installation ID</span>
+                  <span className={styles.idValue} style={{ wordBreak: 'break-all' }}>{localDeviceId}</span>
+                </div>
+                <button 
+                  type="button"
+                  onClick={handleCopy}
+                  aria-label="Copy Installation ID"
+                  title="Copy"
+                  style={{ 
+                    background: 'transparent', 
+                    border: 'none', 
+                    cursor: 'pointer', 
+                    color: isCopied ? '#00a8a8' : '#6b7280',
+                    padding: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'color 0.2s ease',
+                    flexShrink: 0
+                  }}
+                >
+                  {isCopied ? (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                  ) : (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                  )}
+                </button>
               </div>
 
-              <button 
-                type="button" 
-                className={styles.submitBtn}
-                onClick={() => setAuthStep('login')} // Allows them to check again once you've updated the JSON
-              >
-                I have sent it, check again
+              <div style={{ display: 'flex', gap: '12px', width: '100%', marginTop: '24px' }}>
+                <button type="button" className={styles.submitBtn} onClick={onCheckAgain}>
+                  I have sent it, check again
+                </button>
+                <button type="button" className={styles.submitBtn} style={{ background: 'transparent', border: '1px solid #d1d5db', color: '#111827' }} onClick={onLogout}>
+                  Log out
+                </button>
+              </div>
+            </div>
+          ) : (
+            // --- REJECTED DEVICE VIEW ---
+            <div className={styles.pendingContainer}>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="#ff444f" className={styles.warningIcon} style={{ background: '#fde8e8' }}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <h2 className={styles.pendingTitle}>Unauthorized Device</h2>
+              <p className={styles.pendingDesc}>
+                This account is already permanently linked to another person's device. You cannot log in from this browser.
+              </p>
+
+              <button type="button" className={styles.submitBtn} onClick={onLogout} style={{ marginTop: '24px' }}>
+                Go back & Log out
               </button>
             </div>
           )}
         </div>
-
       </div>
     </div>
   );

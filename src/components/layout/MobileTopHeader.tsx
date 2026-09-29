@@ -3,15 +3,15 @@ import styles from './MobileTopHeader.module.css';
 import { useAccount } from '../../context/AccountContext';
 import type { NavigationTab } from '../../types/account';
 import askAmySvg from '../../assets/ask_amy.svg';
-import usersData from '../../data/users.json';
 
 type MobileTopHeaderProps = {
   currentTab: NavigationTab;
   onOpenTransfer?: () => void;
   onOpenProfile?: () => void;
+  userFullName?: string; // Passed down globally from App.tsx
 };
 
-export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenProfile }: MobileTopHeaderProps) => {
+export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenProfile, userFullName }: MobileTopHeaderProps) => {
   const { 
     balances, 
     activeMode, 
@@ -27,14 +27,14 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenProfile }: M
   const [portfolioSubTab, setPortfolioSubTab] = useState<'Overview' | 'Wallet' | 'Partners' | 'Trading' | 'P2P'>('Overview');
   const [isBalanceHidden, setIsBalanceHidden] = useState(false);
   
-  // Refresh Logic
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [localTimestamp, setLocalTimestamp] = useState<string | null>(null);
   
-  // Dynamically fetch initials
-  const userEmail = localStorage.getItem('deriv_current_user');
-  const user = usersData.users.find(u => u.email === userEmail);
-  const initials = user ? `${user.firstName[0]}${user.lastName[0]}`.toUpperCase() : 'ON';
+  // Dynamically compute initials directly from the global Supabase full name
+  const nameParts = (userFullName || 'Oswald Ngate').trim().split(' ');
+  const firstInitial = nameParts[0]?.[0] || 'O';
+  const lastInitial = nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : 'N';
+  const initials = `${firstInitial}${lastInitial}`.toUpperCase();
 
   const displayAmount =
     currentTab === 'cfds'
@@ -72,7 +72,6 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenProfile }: M
   const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Local state for the admin panel form
   const [adminForm, setAdminForm] = useState({
     accuracy: winAccuracy,
     realWallet: realBalances.walletUsd,
@@ -84,7 +83,6 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenProfile }: M
     demoCfds: demoBalances.cfdsUsd,
   });
 
-  // Sync form when opening panel
   useEffect(() => {
     if (isAdminPanelOpen) {
       setAdminForm({
@@ -141,7 +139,6 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenProfile }: M
   return (
     <>
       <header className={styles.headerContainer}>
-        {/* 1. Top Bar */}
         <div className={styles.navRow}>
           <div className={styles.leftGroup}>
             {currentTab === 'home' && (
@@ -212,7 +209,6 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenProfile }: M
           </div>
         </div>
 
-        {/* 2. Portfolio Sub-Tabs */}
         {currentTab === 'portfolio' && (
           <div className={styles.subTabsRow}>
             {(['Overview', 'Wallet', 'Partners', 'Trading', 'P2P'] as const).map((tab) => (
@@ -228,7 +224,6 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenProfile }: M
           </div>
         )}
 
-        {/* 3. Conditional Layout */}
         <div className={currentTab === 'home' ? styles.balanceHomeRow : styles.balanceSection}>
           <div className={styles.balanceTextBlock}>
             <span className={styles.totalLabel}>
@@ -273,7 +268,6 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenProfile }: M
             )}
           </div>
 
-          {/* 4. Action Buttons */}
           {currentTab === 'home' && (
             <button type="button" className={styles.homeDepositBtn}>
               Deposit
