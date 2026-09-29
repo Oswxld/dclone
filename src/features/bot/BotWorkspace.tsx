@@ -557,7 +557,7 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
       zoom: {
         controls: false,
         wheel: true,
-        startScale: 0.85,
+        startScale: 0.60,
         maxScale: 2.0,
         minScale: 0.45,
         scaleSpeed: 1.15,
@@ -693,7 +693,7 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
   const dot3Pulsing = isBuying || isBought;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100%' }}>
+    <div className={styles.botAppRoot} style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100%' }}>
       <BotHeader onBackToApp={onBack} customBalance={balances.optionsUsd} />
 
       <main style={{ flex: 1, position: 'relative' }}>
@@ -928,7 +928,7 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
                                 {tx.isPending ? (
                                   <div className={styles.skeletonBarRight} />
                                 ) : (
-                                  <div style={{ color: tx.isWin ? '#00a8a8' : '#ff444f', fontWeight: 700 }}>
+                                  <div style={{ color: tx.isWin ? '#00a8a8' : '#ff444f', fontWeight: 400 }}>
                                     {tx.profit >= 0 ? `+${tx.profit.toFixed(2)}` : tx.profit.toFixed(2)} USD
                                   </div>
                                 )}
@@ -976,7 +976,7 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
                 )}
 
                 {/* Shared Summary Footer (Visible in Summary and Transactions) */}
-                {(drawerTab === 'summary' || drawerTab === 'transactions') && numberOfRuns > 0 && (
+                {(drawerTab === 'summary' || drawerTab === 'transactions') && (
                   <div className={styles.summaryFooterContainer}>
                     <div className={styles.metricsHeaderRow}>
                       <span className={styles.whatsThisLink}>What's this?</span>
@@ -1053,8 +1053,15 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
                       onClick={simPhase === 'IDLE' ? handleToggleRun : undefined}
                     >
                       <div className={styles.runBtnIcon}>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="30" viewBox="0 0 15 30" role="img" fill="currentColor">
-                          <path d="m2.852 7.023 11.25 6.875c.546.352.898.977.898 1.602 0 .664-.352 1.29-.898 1.602l-11.25 6.875c-.586.351-1.329.39-1.914.039C.352 23.703 0 23.078 0 22.375V8.625c0-.664.352-1.29.938-1.602a1.87 1.87 0 0 1 1.914 0"></path>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="30" viewBox="0 0 15 30" role="img" fill="#fff">
+                          <g clipPath="url(#4eeefe709e293836368cddda883315a7__a)">
+                            <path d="m2.852 7.023 11.25 6.875c.546.352.898.977.898 1.602 0 .664-.352 1.29-.898 1.602l-11.25 6.875c-.586.351-1.329.39-1.914.039C.352 23.703 0 23.078 0 22.375V8.625c0-.664.352-1.29.938-1.602a1.87 1.87 0 0 1 1.914 0"></path>
+                          </g>
+                          <defs>
+                            <clipPath id="4eeefe709e293836368cddda883315a7__a">
+                              <path d="M0 0h15v30H0z"></path>
+                            </clipPath>
+                          </defs>
                         </svg>
                       </div>
                       <span>Run</span>

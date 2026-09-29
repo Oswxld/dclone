@@ -1,5 +1,13 @@
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&display=swap');
 
+/* The CSS Sandbox: Forces IBM Plex Sans on the container and ALL its children */
+.botAppRoot,
+.botAppRoot *,
+.botAppRoot button,
+.botAppRoot input {
+  font-family: 'IBM Plex Sans', sans-serif !important;
+}
+
 /* Container & Layout */
 .workspaceWrapper {
   position: relative;
@@ -293,14 +301,17 @@
   border: 1px solid #e5e7eb;
   border-radius: 4px;
   overflow: hidden;
+  box-sizing: border-box;
   box-shadow: 0 2px 4px rgba(0,0,0,0.02);
 }
 
 .runBtn {
-  background-color: #00a8a8;
+  background-color: rgb(75, 180, 179);
   color: #ffffff;
   border: none;
-  width: 96px;
+  padding: 0 16px;
+  height: 100%;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -314,7 +325,9 @@
   background-color: #a0d4d4;
   color: #ffffff;
   border: none;
-  width: 96px;
+  padding: 0 16px;
+  height: 100%;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -328,7 +341,9 @@
   background-color: #ff444f;
   color: #ffffff;
   border: none;
-  width: 96px;
+  padding: 0 16px;
+  height: 100%;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -342,12 +357,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 12px;
-}
-
-.runBtnIcon svg {
-  height: 100%;
-  width: auto;
 }
 
 .stopSquare {
@@ -360,13 +369,17 @@
 /* ==========================================================
    TRACK AREA & DOTS (Animated & Thicker)
    ========================================================== */
+/* ==========================================================
+   TRACK AREA & DOTS (Animated & Thicker)
+   ========================================================== */
 .trackArea {
   flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 0 16px;
+  /* Reduced padding to stretch the line to exactly ~238px */
+  padding: 0 12.5px; 
 }
 
 .trackText {
@@ -378,43 +391,42 @@
 
 .progressLineContainer {
   position: relative;
-  width: 80%;
+  width: 100%; /* Now stretches fully within the new 12.5px padding constraints */
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: 14px; /* Ensure space for thicker line and dots */
+  height: 10px; /* Reduced to match the 10px dynamic circle */
 }
 
-/* The thicker 6px grey line */
+/* The thicker 5px grey line */
 .progressLineBackground {
   position: absolute;
   top: 50%;
   left: 0;
   right: 0;
-  height: 6px;
+  height: 5px;
   background-color: #e5e7eb;
   transform: translateY(-50%);
   z-index: 1;
-  border-radius: 3px;
+  border-radius: 2.5px;
 }
 
-/* Animated Green Fill (Thicker 6px) */
+/* Animated Green Fill (Thicker 5px) */
 .progressBar {
   position: absolute;
   top: 50%;
   left: 0;
-  height: 6px;
+  height: 5px;
   background-color: #3ba59f;
   transform: translateY(-50%);
   z-index: 2;
-  border-radius: 3px;
-  /* Transition is handled directly via React style prop */
+  border-radius: 2.5px;
 }
 
 .circularWrapper {
   position: relative;
-  width: 14px;
-  height: 14px;
+  width: 10px; /* Reduced from 14px */
+  height: 10px; /* Reduced from 14px */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -423,9 +435,9 @@
 
 .staticCircle {
   position: absolute;
-  width: 6px;
-  height: 6px;
-  background-color: #9ca3af;
+  width: 2px; /* Crushed from 6px to match Deriv's tiny dots */
+  height: 2px;
+  background-color: rgb(0, 0, 0);
   border-radius: 50%;
   transition: background-color 0.3s ease;
 }
@@ -437,8 +449,8 @@
 /* The alternating Red/Green expanding pulse */
 .dynamicCircle {
   position: absolute;
-  width: 14px;
-  height: 14px;
+  width: 10px; /* Reduced from 14px */
+  height: 10px; /* Reduced from 14px */
   border-radius: 50%;
   animation: pulseRedGreen 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
 }
@@ -541,7 +553,7 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  padding: 12px 16px;
+  padding: 6px 0px;
   position: relative;
   border-top: 1px solid #e5e7eb;
   border-bottom: 1px solid #e5e7eb;
@@ -558,11 +570,11 @@
   position: absolute;
   right: 16px;
   background-color: #ffffff;
-  border: 1px solid #d1d5db;
-  color: #374151;
+  border: 1px solid rgb(153, 153, 153);
+  color: #000000;
   font-size: 13px;
   font-weight: 600;
-  padding: 6px 16px;
+  padding: 3.5px 22px;
   border-radius: 4px;
   cursor: pointer;
 }
@@ -885,7 +897,7 @@
 
 .transTable th {
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 400;
   color: #111827;
   padding: 10px 4px;
   text-align: left;
@@ -955,7 +967,7 @@
 .transTableRow td {
   padding: 10px 4px;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 400;
   vertical-align: middle;
 }
 

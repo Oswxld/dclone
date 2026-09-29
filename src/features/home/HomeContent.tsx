@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import styles from './HomeContent.module.css';
 import { useAccount } from '../../context/AccountContext';
 
@@ -9,8 +10,12 @@ import moreIcon from '../../assets/More.png';
 import cryptoTransferHero from '../../assets/crypto_transfer.png';
 import metalsHero from '../../assets/Metals.png';
 
+// Import the background looping video
+import tradingViewWebm from './tradingview-featured-mt5.webm';
+
 export const HomeContent = () => {
   const { balances } = useAccount();
+  const [isAdVisible, setIsAdVisible] = useState(true);
 
   const formatBal = (n: number) =>
     n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -52,6 +57,41 @@ export const HomeContent = () => {
           </span>
         </div>
       </div>
+
+      {/* NEW: TradingView Ad Banner */}
+      {isAdVisible && (
+        <div className={styles.adBannerContainer}>
+          <div className={styles.adBannerInner} role="button" tabIndex={0}>
+            <div className={styles.adBannerTextCol}>
+              <p className={styles.adBannerHeadline}>Trade with TradingView charts</p>
+              <p className={styles.adBannerSubtext}>Advanced charts and tools for 24/7 Derived Indices.</p>
+            </div>
+            
+            <div className={styles.adBannerVideoWrap}>
+              <video 
+                autoPlay 
+                loop 
+                muted 
+                playsInline 
+                className={styles.adBannerVideo}
+              >
+                <source src={tradingViewWebm} type="video/webm" />
+              </video>
+            </div>
+          </div>
+          
+          <button 
+            type="button" 
+            aria-label="Dismiss banner" 
+            className={styles.adBannerCloseBtn}
+            onClick={() => setIsAdVisible(false)}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="12" height="12" role="img" fill="currentColor">
+              <path d="M3.854 3.146 8 7.293l4.146-4.147a.5.5 0 0 1 .708.708L8.707 8l4.147 4.146a.5.5 0 0 1-.708.708L8 8.707l-4.146 4.147a.5.5 0 0 1-.708-.708L7.293 8 3.146 3.854a.5.5 0 1 1 .708-.708"></path>
+            </svg>
+          </button>
+        </div>
+      )}
 
       {/* 2. Explore Deriv */}
       <section className={styles.exploreSection}>
