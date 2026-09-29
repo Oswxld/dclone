@@ -176,6 +176,10 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onLogout, 
               <div><label style={{ display: 'block', color: '#cbd5e1', fontSize: '12px', marginBottom: '6px', fontFamily: '"IBM Plex Sans", sans-serif' }}>Deriv P2P</label><input type="number" value={secretP2p} onChange={(e) => setSecretP2p(e.target.value)} placeholder={balances.p2pUsd.toString()} style={inputStyle} /></div>
             </div>
             
+
+
+
+            
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
               <button onClick={() => setShowSecretModal(false)} style={{ padding: '10px 16px', background: 'transparent', border: 'none', color: '#94a3b8', fontWeight: 600, cursor: 'pointer', fontFamily: '"IBM Plex Sans", sans-serif' }}>Cancel</button>
               <button onClick={handleAdminSubmit} style={{ padding: '10px 20px', background: '#ff444f', border: 'none', borderRadius: '8px', color: '#fff', fontWeight: 600, cursor: 'pointer', fontFamily: '"IBM Plex Sans", sans-serif' }}>Update Balances</button>
