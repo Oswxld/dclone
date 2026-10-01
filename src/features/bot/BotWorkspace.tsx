@@ -163,7 +163,7 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
   }>({
     market: 'Volatility 100 (1s) Index',
     action: 'Rise',
-    stake: 1.0,
+    stake: 0.335, // Set default starting stake to 0.335
     potentialPayout: 1.9,
     currentValue: 1.85,
     profit: 0.85,
@@ -319,7 +319,8 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
     if (assetCode === '1HZ25V') activeMarket = 'Volatility 25 (1s) Index';
     if (assetCode === '1HZ10V') activeMarket = 'Volatility 10 (1s) Index';
 
-    const stake = parseFloat(optionsBlock?.getFieldValue('STAKE') || '1.00');
+    // Parse the stake from blockly, default to 0.335 if empty/not set
+    const stake = parseFloat(optionsBlock?.getFieldValue('STAKE') || '0.335');
     const duration = parseInt(optionsBlock?.getFieldValue('DURATION') || '1', 10);
     const prediction = parseInt(optionsBlock?.getFieldValue('PREDICTION') || '1', 10);
     

@@ -1,8 +1,12 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
 .scrollContainer {
   flex: 1;
   padding: 16px 16px calc(var(--bottom-bar-height) + 24px) 16px;
   overflow-y: auto;
   text-align: left;
+  /* THE FIX: Force the global background to pure white for flawless blending */
+  background-color: #ffffff; 
 }
 
 .sectionBlock {
@@ -12,26 +16,32 @@
 .sectionTitle {
   font-size: 18px;
   font-weight: 700;
-  color: var(--deriv-text-primary);
-  margin-bottom: 12px;
+  color: #1f2937; /* text-neutral-800 */
+  margin-top: 24px;
+  margin-bottom: 8px;
   text-align: left;
 }
 
-.accountCard {
-  background-color: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
-  overflow: hidden;
+/* THE FIX: Replaced the blocky card with a transparent vertical list */
+.accountList {
+  display: flex;
+  flex-direction: column;
 }
 
+/* THE FIX: Edge-to-edge rows with just a bottom divider line */
 .rowItem {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px;
-  border-bottom: 1px solid #f0f2f5;
+  padding: 16px 4px;
+  border-bottom: 1px solid #f3f4f6; /* border-neutral-100 */
+  background-color: transparent;
   cursor: pointer;
   transition: background-color 0.15s ease;
+  width: 100%;
+  border-top: none;
+  border-left: none;
+  border-right: none;
 }
 
 .rowItem:last-child {
@@ -39,7 +49,7 @@
 }
 
 .rowItem:hover {
-  background-color: #fbfcfd;
+  background-color: #f9fafb; /* hover:bg-neutral-50 */
 }
 
 .leftCol {
@@ -48,13 +58,11 @@
   gap: 12px;
 }
 
-/* Empty rounded image placeholders cropped to exact circle/radius */
 .iconPlaceholder {
-  width: 38px;
-  height: 38px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   overflow: hidden;
-  background-color: #e2e8f0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -62,11 +70,10 @@
 }
 
 .iconPlaceholderSquare {
-  width: 38px;
-  height: 38px;
-  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
   overflow: hidden;
-  background-color: #e2e8f0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -81,9 +88,9 @@
 }
 
 .accountName {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 500;
-  color: var(--deriv-text-primary);
+  color: #1f2937; /* text-neutral-800 */
   text-align: left;
 }
 
@@ -91,20 +98,22 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
+  justify-content: center;
   text-align: right;
   gap: 2px;
 }
 
 .balancePrimary {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--deriv-text-primary);
+  font-size: 16px;
+  font-weight: 500;
+  color: #111827; /* text-neutral-900 */
   text-align: right;
 }
 
 .balanceSecondary {
+  font-family: Inter, "Inter Fallback", sans-serif !important;
   font-size: 12px;
-  color: var(--deriv-text-muted);
+  color: #9ca3af; /* text-neutral-400 */
   text-align: right;
 }
 
@@ -112,7 +121,7 @@
 .transactionsWrapper {
   display: flex;
   justify-content: center;
-  margin-top: 10px;
+  margin-top: 32px;
   margin-bottom: 16px;
 }
 
@@ -121,12 +130,16 @@
   align-items: center;
   gap: 8px;
   background-color: #ffffff;
-  border: 1px solid #15171c;
-  padding: 10px 24px;
-  border-radius: 9999px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 10px 20px;
+  border-radius: 16px;
   font-size: 14px;
-  font-weight: 600;
-  color: var(--deriv-text-primary);
+  font-weight: 500;
+  color: #374151; /* text-neutral-700 */
   cursor: pointer;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  transition: background-color 0.2s ease;
+}
+
+.transactionsBtn:hover {
+  background-color: #f9fafb;
 }

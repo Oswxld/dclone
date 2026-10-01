@@ -2,6 +2,7 @@
   flex: 1;
   padding: 16px 16px calc(var(--bottom-bar-height) + 20px) 16px;
   overflow-y: auto;
+  background-color: #ffffff;
 }
 
 .sectionTitle {

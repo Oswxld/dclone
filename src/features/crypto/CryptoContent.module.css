@@ -1,0 +1,516 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+.scrollContainer {
+  flex: 1;
+  padding: 24px 16px calc(var(--bottom-bar-height) + 24px) 16px;
+  overflow-y: auto;
+  font-family: Inter, sans-serif;
+  background-color: #ffffff;
+  font-family: Inter, sans-serif;
+}
+
+/* 1. TRADE CRYPTO SECTION */
+.tradeSection {
+  margin-bottom: 24px;
+  font-family: Inter, sans-serif;
+}
+
+.sectionTitle {
+    font-family: Inter, sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827; /* slate-solid-1200 */
+  margin-bottom: 16px;
+}
+
+.tradeCard {
+  background-color: #ffffff;
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.quoteChipsRow {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  margin-bottom: 16px;
+  scrollbar-width: none;
+}
+.quoteChipsRow::-webkit-scrollbar { display: none; }
+
+.quoteChip {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(0,0,0,0.08);
+  background: transparent;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.quoteChipSelected {
+  background-color: rgba(0, 0, 0, 0.04);
+  
+  border-color: #111827;
+}
+
+.pairSelectorBtn {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: rgba(0,0,0,0.04);
+  border-radius: 16px;
+  padding: 16px;
+  border: none;
+  cursor: pointer;
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+.pairLeft {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.coinIconLg {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.pairTextCol {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.pairName {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.pairSubDetails {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pairPriceText {
+  font-size: 14px;
+  color: rgba(0,0,0,0.6);
+}
+
+.downArrow {
+  fill: #e11d48; /* cherry-solid-900 */
+}
+
+.chevronIcon {
+  fill: rgba(0,0,0,0.9);
+  transform: rotate(-90deg); /* points down */
+}
+
+.inputArea {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 16px;
+}
+
+.balanceHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: rgba(0,0,0,0.04);
+  padding: 8px 16px 16px 16px;
+  border-radius: 8px 8px 0 0;
+  border: 1px solid rgba(0,0,0,0.08);
+  border-bottom: none;
+  margin-bottom: -8px;
+}
+
+.coinIconSm {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+}
+
+.balanceLabel {
+  flex: 1;
+  font-size: 14px;
+  color: rgba(0,0,0,0.48);
+}
+
+.balanceValue {
+  font-size: 14px;
+  color: #111827;
+}
+
+.amountInputRow {
+  display: flex;
+  align-items: center;
+  height: 56px;
+  background-color: #ffffff;
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 8px;
+  padding: 0 16px;
+  gap: 8px;
+  z-index: 2;
+}
+
+.amountFieldWrapper {
+  flex: 1;
+  position: relative;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.amountPlaceholder {
+  position: absolute;
+  font-size: 16px;
+  color: rgba(0,0,0,0.45);
+  pointer-events: none;
+}
+
+.amountInput {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-size: 16px;
+  color: rgba(0,0,0,0.72);
+  outline: none;
+  z-index: 1;
+}
+
+.currencySwitchBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: rgba(0,0,0,0.04);
+  padding: 4px 12px;
+  border-radius: 9999px;
+  border: none;
+  font-size: 14px;
+  color: #111827;
+  cursor: pointer;
+}
+
+.hintText {
+  font-size: 12px;
+  color: rgba(0,0,0,0.48);
+  margin-top: 6px;
+}
+
+.pctChipsRow {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.pctChip {
+  flex: 1;
+  height: 32px;
+  border-radius: 9999px;
+  border: 1px solid rgba(0,0,0,0.08);
+  background: transparent;
+  font-size: 14px;
+  color: rgba(0,0,0,0.72);
+  cursor: pointer;
+}
+
+.buyBtn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 9999px;
+  background-color: rgb(0, 195, 144); /* emerald-solid-700 */
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+  margin-bottom: 16px;
+}
+
+.advancedModeBtn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: rgba(0,0,0,0.04);
+  padding: 16px;
+  border-radius: 0 0 16px 16px;
+  border: none;
+  margin: 0 -16px -16px -16px; /* bleeds to edge of card */
+  cursor: pointer;
+  text-align: left;
+}
+
+.advTextCol {
+  flex: 1;
+}
+
+.advTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 2px 0;
+}
+
+.advDesc {
+  font-size: 14px;
+  color: rgba(0,0,0,0.48);
+  margin: 0;
+}
+
+
+/* 2. FUTURES BANNER */
+.futuresBanner {
+  background: linear-gradient(to right, #3d1020 0%, #11141b 55%);
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.bannerTextCol {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 2;
+  max-width: 60%;
+}
+
+.bannerTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+}
+
+.bannerDesc {
+  font-size: 14px;
+  color: rgba(255,255,255,0.72);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.exploreBtn {
+  align-self: flex-start;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.3);
+  color: #ffffff;
+  padding: 6px 16px;
+  border-radius: 9999px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.bannerImg {
+  position: absolute;
+  right: -10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+  z-index: 1;
+}
+
+
+/* 3. MARKETS LIST */
+.marketsSection {
+  display: flex;
+  flex-direction: column;
+}
+
+.marketsTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 12px;
+}
+
+.marketsContainer {
+  background-color: transparent;
+}
+
+.searchWrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: rgba(0,0,0,0.04);
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.searchInput {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 14px;
+  width: 100%;
+}
+
+.filterChipsRow {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.filterChip {
+  padding: 6px 16px;
+  border-radius: 9999px;
+  border: 1px solid rgba(0,0,0,0.08);
+  background: transparent;
+  font-size: 14px;
+  color: rgba(0,0,0,0.72);
+  cursor: pointer;
+}
+
+.filterChipActive {
+  background-color: rgba(0,0,0,0.04);
+  border-color: #111827;
+  font-weight: 500;
+  color: #111827;
+}
+
+.listHeader {
+  display: flex;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+  margin-bottom: 8px;
+}
+
+.colLeft {
+  width: 144px;
+  font-size: 12px;
+  color: rgba(0,0,0,0.6);
+}
+
+.colCenter {
+  flex: 1;
+  font-size: 12px;
+  color: rgba(0,0,0,0.6);
+  text-align: center;
+}
+
+.colRight {
+  width: 96px;
+  font-size: 12px;
+  color: rgba(0,0,0,0.6);
+  text-align: right;
+}
+
+.marketRow {
+  display: flex;
+  align-items: center;
+  height: 72px;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+}
+
+.rowLeft {
+  width: 144px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.placeholderIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: #6b7280;
+}
+
+.coinTextCol {
+  display: flex;
+  flex-direction: column;
+}
+
+.coinName {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.coinVol {
+  font-size: 12px;
+  color: rgba(0,0,0,0.6);
+}
+
+.rowCenter {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.miniChartLine {
+  width: 60px;
+  height: 24px;
+  background: linear-gradient(to right, #10b981 50%, #f43f5e 50%);
+  opacity: 0.2;
+  border-radius: 4px;
+}
+
+.rowRight {
+  width: 96px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.currentPrice {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.pctPositive {
+  font-size: 12px;
+  color: #047857; /* emerald-solid-900 */
+}
+
+.pctNegative {
+  font-size: 12px;
+  color: #e11d48; /* cherry-solid-900 */
+}
+
+.viewMoreBtn {
+  width: 100%;
+  padding: 16px;
+  background: transparent;
+  border: none;
+  font-size: 14px;
+  color: #111827;
+  cursor: pointer;
+  margin-top: 8px;
+}
+/* Add these two classes to size your new images correctly */
+.marketCoinIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.marketChartImg {
+  width: 73px;
+  height: 32px;
+  object-fit: contain;
+}

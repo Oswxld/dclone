@@ -8,5 +8,4 @@ export interface AccountBalances {
   currency: string;
   lastUpdated: string;
 }
-
-export type NavigationTab = 'home' | 'cfds' | 'options' | 'portfolio';
+export type NavigationTab = 'home' | 'cfds' | 'crypto' | 'options' | 'portfolio';

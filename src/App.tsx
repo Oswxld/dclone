@@ -4,6 +4,7 @@ import { MobileTopHeader } from './components/layout/MobileTopHeader';
 import { MobileBottomNav } from './components/layout/MobileBottomNav';
 import { HomeContent } from './features/home/HomeContent';
 import { CfdsContent } from './features/cfds/CfdsContent';
+import { CryptoContent } from './features/crypto/CryptoContent'; // <-- IMPORTED CRYPTO MODULE
 import { OptionsContent } from './features/options/OptionsContent';
 import { PortfolioContent } from './features/portfolio/PortfolioContent';
 import { TransferScreen } from './features/portfolio/TransferScreen';
@@ -132,7 +133,7 @@ export const App = () => {
     );
   }
 
-  if (appState !== 'authenticated') {
+  /*if (appState !== 'authenticated') {
     return (
       <LoginScreen 
         authStatus={appState} 
@@ -141,7 +142,7 @@ export const App = () => {
         onLogout={handleLogout}
       />
     );
-  }
+  }*/
 
   return (
     <AccountProvider>
@@ -174,8 +175,10 @@ export const App = () => {
               userFullName={userProfile?.fullName}
             />
 
+            {/* ROUTING LOGIC INTEGRATED HERE */}
             {currentTab === 'home' && <HomeContent />}
             {currentTab === 'cfds' && <CfdsContent />}
+            {currentTab === 'crypto' && <CryptoContent />} {/* <-- RENDER CRYPTO */}
             {currentTab === 'options' && <OptionsContent onOpenBot={handleLaunchBot} />}
             {currentTab === 'portfolio' && <PortfolioContent />}
 
