@@ -133,7 +133,7 @@ export const App = () => {
     );
   }
 
-  /*if (appState !== 'authenticated') {
+  if (appState !== 'authenticated') {
     return (
       <LoginScreen 
         authStatus={appState} 
@@ -142,7 +142,7 @@ export const App = () => {
         onLogout={handleLogout}
       />
     );
-  }*/
+  }
 
   return (
     <AccountProvider>
