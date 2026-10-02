@@ -33,10 +33,18 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenProfile, use
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [localTimestamp, setLocalTimestamp] = useState<string | null>(null);
   
+  // --- NEW DYNAMIC UI STATES ---
+  const [unreadCount, setUnreadCount] = useState(7);
+  const [customInitials, setCustomInitials] = useState('');
+
+  // Calculate default initials
   const nameParts = (userFullName || 'Oswald Ngate').trim().split(' ');
   const firstInitial = nameParts[0]?.[0] || 'O';
   const lastInitial = nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : 'N';
-  const initials = `${firstInitial}${lastInitial}`.toUpperCase();
+  const calculatedInitials = `${firstInitial}${lastInitial}`.toUpperCase();
+  
+  // Use custom initials if set, otherwise fallback to calculated
+  const displayInitials = customInitials || calculatedInitials;
 
   const displayAmount =
     currentTab === 'cfds'
@@ -82,6 +90,9 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenProfile, use
     realCfds: realBalances.cfdsUsd,
     demoOptions: demoBalances.optionsUsd,
     demoCfds: demoBalances.cfdsUsd,
+    // Add UI states to form
+    unreadCount: unreadCount,
+    initials: displayInitials,
   });
 
   useEffect(() => {
@@ -95,9 +106,11 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenProfile, use
         realCfds: realBalances.cfdsUsd,
         demoOptions: demoBalances.optionsUsd,
         demoCfds: demoBalances.cfdsUsd,
+        unreadCount: unreadCount,
+        initials: displayInitials,
       });
     }
-  }, [isAdminPanelOpen, winAccuracy, realBalances, demoBalances]);
+  }, [isAdminPanelOpen, winAccuracy, realBalances, demoBalances, unreadCount, displayInitials]);
 
   const handleBellPointerDown = () => {
     longPressTimerRef.current = setTimeout(() => {
@@ -114,6 +127,10 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenProfile, use
 
   const handleSaveAdmin = () => {
     setWinAccuracy(adminForm.accuracy);
+    // Save Dynamic UI elements
+    setUnreadCount(adminForm.unreadCount);
+    setCustomInitials(adminForm.initials);
+
     adminOverrideBalances(
       {
         walletUsd: adminForm.realWallet,
@@ -171,17 +188,32 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenProfile, use
                 onPointerUp={handleBellPointerUpOrLeave}
                 onPointerLeave={handleBellPointerUpOrLeave}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="24" height="24" role="img" fill="currentColor">
-                  <path d="M15.375 7.125c0-.312.273-.625.625-.625.313 0 .625.313.625.625v.664c3.125.313 5.625 2.969 5.625 6.211v1.172c0 1.68.664 3.32 1.875 4.531l.117.117c.313.313.508.782.508 1.211a1.75 1.75 0 0 1-1.758 1.758H8.97c-.977-.039-1.719-.781-1.719-1.758 0-.468.156-.898.508-1.21l.078-.118c1.21-1.21 1.914-2.851 1.914-4.531V14a6.237 6.237 0 0 1 5.625-6.21zM16 9c-2.773 0-5 2.266-5 5v1.172a7.7 7.7 0 0 1-2.266 5.43l-.117.078a.63.63 0 0 0-.117.351c0 .274.195.469.469.469h14.023c.274 0 .508-.195.508-.469 0-.117-.078-.234-.156-.351l-.117-.078a7.7 7.7 0 0 1-2.266-5.47V14c0-2.734-2.227-5-5-5zm-1.21 15.43c.194.508.663.82 1.21.82.508 0 .977-.312 1.172-.82.117-.313.469-.508.781-.39a.655.655 0 0 1 .39.82A2.49 2.49 0 0 1 16 26.5c-1.094 0-2.031-.664-2.383-1.64a.654.654 0 0 1 .39-.82c.313-.118.665.077.782.39"></path>
-                </svg>
+                <div style={{ position: 'relative', display: 'inline-flex' }}>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="24" height="24" role="img" fill="currentColor">
+                    <path d="M15.375 7.125c0-.312.273-.625.625-.625.313 0 .625.313.625.625v.664c3.125.313 5.625 2.969 5.625 6.211v1.172c0 1.68.664 3.32 1.875 4.531l.117.117c.313.313.508.782.508 1.211a1.75 1.75 0 0 1-1.758 1.758H8.97c-.977-.039-1.719-.781-1.719-1.758 0-.468.156-.898.508-1.21l.078-.118c1.21-1.21 1.914-2.851 1.914-4.531V14a6.237 6.237 0 0 1 5.625-6.21zM16 9c-2.773 0-5 2.266-5 5v1.172a7.7 7.7 0 0 1-2.266 5.43l-.117.078a.63.63 0 0 0-.117.351c0 .274.195.469.469.469h14.023c.274 0 .508-.195.508-.469 0-.117-.078-.234-.156-.351l-.117-.078a7.7 7.7 0 0 1-2.266-5.47V14c0-2.734-2.227-5-5-5zm-1.21 15.43c.194.508.663.82 1.21.82.508 0 .977-.312 1.172-.82.117-.313.469-.508.781-.39a.655.655 0 0 1 .39.82A2.49 2.49 0 0 1 16 26.5c-1.094 0-2.031-.664-2.383-1.64a.654.654 0 0 1 .39-.82c.313-.118.665.077.782.39"></path>
+                  </svg>
+                  {unreadCount > 0 && (
+                    <span 
+                      className={styles.badge} 
+                      style={{ 
+                        borderColor: 'rgb(20, 23, 31)', // Match crypto header bg
+                        minWidth: '16px',
+                        minHeight: '16px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      {unreadCount}
+                    </span>
+                  )}
+                </div>
               </button>
             </div>
           </div>
 
-          {/* Adjusted to stack items vertically exactly like the standard layout */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             
-            {/* Balance Text Block using matching CSS classes */}
             <div className={styles.balanceTextBlock} style={{ alignItems: 'flex-start', margin: 0 }}>
               <span className={styles.totalLabel} style={{ color: 'rgba(255,255,255,0.72)' }}>
                 Est. total value
@@ -222,7 +254,6 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenProfile, use
               )}
             </div>
 
-            {/* Circle Actions Row using matching CSS classes positioned at the bottom */}
             <div className={styles.circleActionsRow} style={{ justifyContent: 'space-around', margin: 0, paddingBottom: '4px' }}>
               <button type="button" className={styles.circleActionItem} onClick={onOpenTransfer}>
                 <div className={`${styles.circleBtn} ${styles.circleBtnRed}`} style={{ color: 'white' }}>
@@ -260,7 +291,7 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenProfile, use
                 tabIndex={0}
                 aria-label="Profile Settings"
               >
-                {initials}
+                {displayInitials}
               </div>
             )}
           </div>
@@ -311,9 +342,25 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenProfile, use
                 onPointerUp={handleBellPointerUpOrLeave}
                 onPointerLeave={handleBellPointerUpOrLeave}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="24" height="24" role="img" fill="currentColor">
-                  <path d="M15.375 7.125c0-.312.273-.625.625-.625.313 0 .625.313.625.625v.664c3.125.313 5.625 2.969 5.625 6.211v1.172c0 1.68.664 3.32 1.875 4.531l.117.117c.313.313.508.782.508 1.211a1.75 1.75 0 0 1-1.758 1.758H8.97c-.977-.039-1.719-.781-1.719-1.758 0-.468.156-.898.508-1.21l.078-.118c1.21-1.21 1.914-2.851 1.914-4.531V14a6.237 6.237 0 0 1 5.625-6.21zM16 9c-2.773 0-5 2.266-5 5v1.172a7.7 7.7 0 0 1-2.266 5.43l-.117.078a.63.63 0 0 0-.117.351c0 .274.195.469.469.469h14.023c.274 0 .508-.195.508-.469 0-.117-.078-.234-.156-.351l-.117-.078a7.7 7.7 0 0 1-2.266-5.47V14c0-2.734-2.227-5-5-5zm-1.21 15.43c.194.508.663.82 1.21.82.508 0 .977-.312 1.172-.82.117-.313.469-.508.781-.39a.655.655 0 0 1 .39.82A2.49 2.49 0 0 1 16 26.5c-1.094 0-2.031-.664-2.383-1.64a.654.654 0 0 1 .39-.82c.313-.118.665.077.782.39"></path>
-                </svg>
+                <div style={{ position: 'relative', display: 'inline-flex' }}>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="24" height="24" role="img" fill="currentColor">
+                    <path d="M15.375 7.125c0-.312.273-.625.625-.625.313 0 .625.313.625.625v.664c3.125.313 5.625 2.969 5.625 6.211v1.172c0 1.68.664 3.32 1.875 4.531l.117.117c.313.313.508.782.508 1.211a1.75 1.75 0 0 1-1.758 1.758H8.97c-.977-.039-1.719-.781-1.719-1.758 0-.468.156-.898.508-1.21l.078-.118c1.21-1.21 1.914-2.851 1.914-4.531V14a6.237 6.237 0 0 1 5.625-6.21zM16 9c-2.773 0-5 2.266-5 5v1.172a7.7 7.7 0 0 1-2.266 5.43l-.117.078a.63.63 0 0 0-.117.351c0 .274.195.469.469.469h14.023c.274 0 .508-.195.508-.469 0-.117-.078-.234-.156-.351l-.117-.078a7.7 7.7 0 0 1-2.266-5.47V14c0-2.734-2.227-5-5-5zm-1.21 15.43c.194.508.663.82 1.21.82.508 0 .977-.312 1.172-.82.117-.313.469-.508.781-.39a.655.655 0 0 1 .39.82A2.49 2.49 0 0 1 16 26.5c-1.094 0-2.031-.664-2.383-1.64a.654.654 0 0 1 .39-.82c.313-.118.665.077.782.39"></path>
+                  </svg>
+                  {unreadCount > 0 && (
+                    <span 
+                      className={styles.badge}
+                      style={{
+                        minWidth: '16px',
+                        minHeight: '16px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      {unreadCount}
+                    </span>
+                  )}
+                </div>
               </button>
             </div>
           </div>
@@ -456,6 +503,43 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenProfile, use
           <div className={styles.adminSheetContent} onClick={(e) => e.stopPropagation()}>
             <div className={styles.adminSheetHandle} />
             
+            {/* UI Settings Section */}
+            <div className={styles.adminSectionRow}>
+              <div className={styles.adminLabelRow}>
+                <span className={styles.adminTitle}>Interface Overrides</span>
+              </div>
+              <p className={styles.adminSubText}>Force custom UI values onto the header.</p>
+              
+              <div className={styles.adminInputRow}>
+                <div className={styles.adminInputLabelGroup}>
+                  <span className={styles.adminWalletName}>Notification Count</span>
+                </div>
+                <input 
+                  type="number" 
+                  min="0"
+                  className={styles.adminNumInput} 
+                  value={adminForm.unreadCount}
+                  onChange={(e) => setAdminForm({...adminForm, unreadCount: parseInt(e.target.value) || 0})}
+                />
+              </div>
+
+              <div className={styles.adminInputRow}>
+                <div className={styles.adminInputLabelGroup}>
+                  <span className={styles.adminWalletName}>Profile Initials</span>
+                </div>
+                <input 
+                  type="text" 
+                  maxLength={2}
+                  className={styles.adminNumInput} 
+                  value={adminForm.initials}
+                  onChange={(e) => setAdminForm({...adminForm, initials: e.target.value.toUpperCase()})}
+                  style={{ textAlign: 'center', width: '60px' }}
+                />
+              </div>
+            </div>
+
+            <hr style={{ border: 'none', borderTop: '1px solid #e5e7eb', margin: '8px 0 24px 0' }} />
+
             {/* Accuracy Slider Section */}
             <div className={styles.adminSectionRow}>
               <div className={styles.adminLabelRow}>

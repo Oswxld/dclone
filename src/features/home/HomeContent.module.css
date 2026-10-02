@@ -4,7 +4,7 @@
   min-width: 0;
   width: 100%;
   overflow-x: hidden;
-  padding: 20px 16px calc(var(--bottom-bar-height) + 20px) 16px;
+  padding: 20px 0 calc(var(--bottom-bar-height) + 20px) 0; /* Removed side padding here to allow full bleed scroll */
   overflow-y: auto;
   background-color: #ffffff;
 }
@@ -14,14 +14,22 @@
   font-weight: 700;
   color: var(--deriv-text-primary);
   margin-bottom: 12px;
+  padding: 0 16px; /* Added padding back to title */
 }
 
-/* My Trading Accounts Grid */
-.accountsGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+/* HORIZONTAL SCROLL ROW for Trading Accounts */
+.accountsScrollRow {
+  display: flex;
   gap: 12px;
   margin-bottom: 24px;
+  overflow-x: auto;
+  padding: 0 16px 8px 16px; /* Padding for the scroll area */
+  scroll-padding-left: 16px;
+  scroll-snap-type: x mandatory;
+}
+
+.accountsScrollRow::-webkit-scrollbar {
+  display: none;
 }
 
 .accountCard {
@@ -32,6 +40,38 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  min-width: 200px; /* Force minimum width for horizontal scrolling */
+  scroll-snap-align: start;
+  flex-shrink: 0;
+}
+
+/* ADD MORE ACCOUNTS CARD */
+.addMoreCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 200px;
+  min-height: 140px;
+  border-radius: 16px;
+  border: 2px dashed #e5e5e5; /* neutral-200 */
+  background-color: #ffffff;
+  color: #9ca3af; /* neutral-400 */
+  cursor: pointer;
+  transition: all 0.2s ease;
+  scroll-snap-align: start;
+  flex-shrink: 0;
+}
+
+.addMoreCard:hover {
+  background-color: #f9fafb; /* neutral-50 */
+  border-color: #d4d4d8; /* neutral-300 */
+}
+
+.addMoreText {
+  font-size: 12px;
+  text-align: center;
 }
 
 .badgeSquare {
@@ -63,13 +103,13 @@
 
 .accountLabel {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 400;
   color: var(--deriv-text-primary);
 }
 
 .accountBalance {
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 400;
   color: var(--deriv-text-primary);
 }
 
@@ -88,6 +128,8 @@
   overflow: hidden;
   position: relative;
   width: 100%;
+  padding: 0 16px; /* Added padding back since we removed it from parent */
+  box-sizing: border-box;
 }
 
 .carouselTrack {
@@ -226,6 +268,7 @@
 /* Explore Deriv Section */
 .exploreSection {
   margin-bottom: 24px;
+  padding: 0 16px;
 }
 
 .exploreGrid {
@@ -263,15 +306,15 @@
 
 .newBadge {
   position: absolute;
-  top: -6px;         /* -top-1.5 */
-  right: -12px;      /* -right-3 */
+  top: -6px;
+  right: -12px;
   z-index: 10;
   border-radius: 9999px;
-  background-color: rgb(0, 195, 144); /* Emerald-700 equivalent */
-  padding: 2px 6px;  /* px-1.5 py-0.5 */
+  background-color: rgb(0, 195, 144);
+  padding: 2px 6px;
   font-size: 10px;
   font-weight: 700;
-  line-height: 1.25; /* leading-tight */
+  line-height: 1.25;
   color: #ffffff;
   pointer-events: none;
 }
@@ -289,7 +332,7 @@
 
 .exploreLabel {
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 400;
   color: var(--deriv-text-primary);
   text-align: center;
   line-height: 1.2;
@@ -298,6 +341,7 @@
 /* Highlights Section */
 .highlightsSection {
   margin-bottom: 12px;
+  padding: 0 16px;
 }
 
 .carousel {
