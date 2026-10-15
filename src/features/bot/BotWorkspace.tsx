@@ -7,7 +7,7 @@ import { initDerivBlocks, DerivTheme } from './blocklyConfig';
 import { useAccount } from '../../context/AccountContext';
 
 type BotWorkspaceProps = {
-  onBack: () => void;
+  onBack: (destinationTab?: string) => void;
 };
 
 interface TransactionItem {
@@ -1183,7 +1183,17 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
         )}
       </main>
 
-      <BotBottomNav currentTab={activeTab} onTabSelect={() => onBack()} />
+      {/* Navigate out of BotWorkspace to the exact tab pressed */}
+      <BotBottomNav 
+        currentTab={activeTab} 
+        onTabSelect={(tab: any) => {
+          if (['home', 'cfds', 'crypto', 'options', 'portfolio'].includes(tab)) {
+            onBack(tab);
+          } else {
+            setActiveTab(tab);
+          }
+        }} 
+      />
     </div>
   );
 };

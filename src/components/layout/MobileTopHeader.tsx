@@ -190,7 +190,14 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenProfile, use
           
           {/* Top Bar for Crypto (Ask Amy, Eye, Bell) */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-            <div style={{ flex: 1 }}></div>
+            <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-start' }}>
+              {/* Search Button for non-home tabs */}
+              <button type="button" aria-label="Search" className={styles.searchBtn}>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="20" height="20" role="img" fill="currentColor" aria-hidden="true">
+                  <path d="M21 14.625c0-2.422-1.328-4.687-3.437-5.937-2.149-1.211-4.766-1.211-6.875 0a6.87 6.87 0 0 0-3.438 5.937 6.89 6.89 0 0 0 3.438 5.977c2.109 1.21 4.726 1.21 6.874 0 2.11-1.25 3.438-3.516 3.438-5.977m-1.602 6.172c-1.406 1.25-3.28 1.953-5.273 1.953A8.12 8.12 0 0 1 6 14.625C6 10.172 9.633 6.5 14.125 6.5c4.453 0 8.125 3.672 8.125 8.125 0 2.031-.742 3.867-1.953 5.313l5.508 5.507a.66.66 0 0 1 0 .899.66.66 0 0 1-.899 0z"></path>
+                </svg>
+              </button>
+            </div>
             <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
               <button type="button" aria-label="Ask Amy" style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}>
                 <img src={askAmySvg} alt="Ask Amy" style={{ height: '32px' }} />
@@ -222,15 +229,8 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenProfile, use
                   </svg>
                   {unreadCount > 0 && (
                     <span 
-                      className={styles.badge} 
-                      style={{ 
-                        borderColor: 'rgb(20, 23, 31)', // Match crypto header bg
-                        minWidth: '16px',
-                        minHeight: '16px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}
+                      className={styles.notificationBadge} 
+                      style={{ borderColor: 'rgb(20, 23, 31)' }}
                     >
                       {unreadCount}
                     </span>
@@ -240,10 +240,7 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenProfile, use
             </div>
           </div>
 
-          {/* Adjusted to stack items vertically exactly like the standard layout */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            
-            {/* Balance Text Block using matching CSS classes */}
             <div className={styles.balanceTextBlock} style={{ alignItems: 'flex-start', margin: 0 }}>
               <span className={styles.totalLabel} style={{ color: 'rgba(255,255,255,0.72)' }}>
                 Est. total value
@@ -284,7 +281,6 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenProfile, use
               )}
             </div>
 
-            {/* Circle Actions Row using matching CSS classes positioned at the bottom */}
             <div className={styles.circleActionsRow} style={{ justifyContent: 'space-around', margin: 0, paddingBottom: '4px' }}>
               <button type="button" className={styles.circleActionItem} onClick={onOpenTransfer}>
                 <div className={`${styles.circleBtn} ${styles.circleBtnRed}`} style={{ color: 'white' }}>
@@ -312,7 +308,7 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenProfile, use
     <>
       <header className={styles.headerContainer}>
         <div className={styles.navRow}>
-          <div className={styles.leftGroup}>
+          <div className={styles.leftGroup} style={{ gap: '8px' }}>
             {currentTab === 'home' && (
               <div 
                 className={styles.profileBtn}
@@ -325,6 +321,12 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenProfile, use
                 {displayInitials}
               </div>
             )}
+            {/* Search Button (Shows next to profile on Home, or alone on left on other tabs) */}
+            <button type="button" aria-label="Search" className={styles.searchBtn}>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="20" height="20" role="img" fill="currentColor" aria-hidden="true">
+                <path d="M21 14.625c0-2.422-1.328-4.687-3.437-5.937-2.149-1.211-4.766-1.211-6.875 0a6.87 6.87 0 0 0-3.438 5.937 6.89 6.89 0 0 0 3.438 5.977c2.109 1.21 4.726 1.21 6.874 0 2.11-1.25 3.438-3.516 3.438-5.977m-1.602 6.172c-1.406 1.25-3.28 1.953-5.273 1.953A8.12 8.12 0 0 1 6 14.625C6 10.172 9.633 6.5 14.125 6.5c4.453 0 8.125 3.672 8.125 8.125 0 2.031-.742 3.867-1.953 5.313l5.508 5.507a.66.66 0 0 1 0 .899.66.66 0 0 1-.899 0z"></path>
+              </svg>
+            </button>
           </div>
 
           <div className={styles.centerGroup}>
@@ -378,16 +380,7 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenProfile, use
                     <path d="M15.375 7.125c0-.312.273-.625.625-.625.313 0 .625.313.625.625v.664c3.125.313 5.625 2.969 5.625 6.211v1.172c0 1.68.664 3.32 1.875 4.531l.117.117c.313.313.508.782.508 1.211a1.75 1.75 0 0 1-1.758 1.758H8.97c-.977-.039-1.719-.781-1.719-1.758 0-.468.156-.898.508-1.21l.078-.118c1.21-1.21 1.914-2.851 1.914-4.531V14a6.237 6.237 0 0 1 5.625-6.21zM16 9c-2.773 0-5 2.266-5 5v1.172a7.7 7.7 0 0 1-2.266 5.43l-.117.078a.63.63 0 0 0-.117.351c0 .274.195.469.469.469h14.023c.274 0 .508-.195.508-.469 0-.117-.078-.234-.156-.351l-.117-.078a7.7 7.7 0 0 1-2.266-5.47V14c0-2.734-2.227-5-5-5zm-1.21 15.43c.194.508.663.82 1.21.82.508 0 .977-.312 1.172-.82.117-.313.469-.508.781-.39a.655.655 0 0 1 .39.82A2.49 2.49 0 0 1 16 26.5c-1.094 0-2.031-.664-2.383-1.64a.654.654 0 0 1 .39-.82c.313-.118.665.077.782.39"></path>
                   </svg>
                   {unreadCount > 0 && (
-                    <span 
-                      className={styles.badge}
-                      style={{
-                        minWidth: '16px',
-                        minHeight: '16px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}
-                    >
+                    <span className={styles.notificationBadge}>
                       {unreadCount}
                     </span>
                   )}

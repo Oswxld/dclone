@@ -4,7 +4,7 @@ import { MobileTopHeader } from './components/layout/MobileTopHeader';
 import { MobileBottomNav } from './components/layout/MobileBottomNav';
 import { HomeContent } from './features/home/HomeContent';
 import { CfdsContent } from './features/cfds/CfdsContent';
-import { CryptoContent } from './features/crypto/CryptoContent'; // <-- IMPORTED CRYPTO MODULE
+import { CryptoContent } from './features/crypto/CryptoContent';
 import { OptionsContent } from './features/options/OptionsContent';
 import { PortfolioContent } from './features/portfolio/PortfolioContent';
 import { TransferScreen } from './features/portfolio/TransferScreen';
@@ -114,7 +114,7 @@ export const App = () => {
   };
 
   // --- MAIN APP STATE ---
-  const [currentTab, setCurrentTab] = useState<NavigationTab>('options');
+  const [currentTab, setCurrentTab] = useState<NavigationTab>('home');
   const [isTransferOpen, setIsTransferOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isBotLoading, setIsBotLoading] = useState(false);
@@ -122,7 +122,16 @@ export const App = () => {
 
   const handleLaunchBot = () => setIsBotLoading(true);
   const handleBotLoaded = () => { setIsBotLoading(false); setIsBotActive(true); };
-  const handleExitBot = () => { setIsBotActive(false); setCurrentTab('options'); };
+  
+  // FIX: Dynamic Exit routing based on the tab pressed
+  const handleExitBot = (destinationTab?: string) => { 
+    setIsBotActive(false); 
+    if (destinationTab && ['home', 'cfds', 'crypto', 'options', 'portfolio'].includes(destinationTab)) {
+      setCurrentTab(destinationTab as NavigationTab);
+    } else {
+      setCurrentTab('options'); 
+    }
+  };
 
   // --- RENDERING ROUTER ---
   if (appState === 'loading') {
@@ -178,7 +187,7 @@ export const App = () => {
             {/* ROUTING LOGIC INTEGRATED HERE */}
             {currentTab === 'home' && <HomeContent />}
             {currentTab === 'cfds' && <CfdsContent />}
-            {currentTab === 'crypto' && <CryptoContent />} {/* <-- RENDER CRYPTO */}
+            {currentTab === 'crypto' && <CryptoContent />}
             {currentTab === 'options' && <OptionsContent onOpenBot={handleLaunchBot} />}
             {currentTab === 'portfolio' && <PortfolioContent />}
 
