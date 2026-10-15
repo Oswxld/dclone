@@ -4,7 +4,7 @@
   min-width: 0;
   width: 100%;
   overflow-x: hidden;
-  padding: 20px 0 calc(var(--bottom-bar-height) + 20px) 0; /* Removed side padding here to allow full bleed scroll */
+  padding: 20px 0 calc(var(--bottom-bar-height) + 20px) 0;
   overflow-y: auto;
   background-color: #ffffff;
 }
@@ -14,7 +14,7 @@
   font-weight: 700;
   color: var(--deriv-text-primary);
   margin-bottom: 12px;
-  padding: 0 16px; /* Added padding back to title */
+  padding: 0 16px;
 }
 
 /* HORIZONTAL SCROLL ROW for Trading Accounts */
@@ -23,7 +23,7 @@
   gap: 12px;
   margin-bottom: 24px;
   overflow-x: auto;
-  padding: 0 16px 8px 16px; /* Padding for the scroll area */
+  padding: 0 16px 8px 16px;
   scroll-padding-left: 16px;
   scroll-snap-type: x mandatory;
 }
@@ -40,7 +40,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  min-width: 200px; /* Force minimum width for horizontal scrolling */
+  min-width: 200px;
   scroll-snap-align: start;
   flex-shrink: 0;
 }
@@ -55,9 +55,9 @@
   min-width: 200px;
   min-height: 140px;
   border-radius: 16px;
-  border: 2px dashed #e5e5e5; /* neutral-200 */
+  border: 2px dashed #e5e5e5;
   background-color: #ffffff;
-  color: #9ca3af; /* neutral-400 */
+  color: #9ca3af;
   cursor: pointer;
   transition: all 0.2s ease;
   scroll-snap-align: start;
@@ -65,8 +65,8 @@
 }
 
 .addMoreCard:hover {
-  background-color: #f9fafb; /* neutral-50 */
-  border-color: #d4d4d8; /* neutral-300 */
+  background-color: #f9fafb;
+  border-color: #d4d4d8;
 }
 
 .addMoreText {
@@ -128,7 +128,7 @@
   overflow: hidden;
   position: relative;
   width: 100%;
-  padding: 0 16px; /* Added padding back since we removed it from parent */
+  padding: 0 16px;
   box-sizing: border-box;
 }
 
@@ -149,6 +149,11 @@
   will-change: transform;
 }
 
+/* Exchange Banner Specific Background */
+.exchangeCardBg {
+  background-image: radial-gradient(162.35% 121.56% at 88% -12%, rgba(255, 68, 79, 0.18) 0%, rgba(255, 68, 79, 0) 58%), linear-gradient(152deg, rgb(20, 10, 13) 0%, rgb(42, 21, 25) 100%);
+}
+
 .cardInner {
   display: flex;
   align-items: center;
@@ -163,6 +168,20 @@
   min-width: 0;
   z-index: 2;
   padding-right: 110px;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.titleIcon {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 .cardTitle {
@@ -350,6 +369,7 @@
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   padding-bottom: 6px;
+  scroll-padding-left: 16px;
 }
 
 .carousel::-webkit-scrollbar {
@@ -376,32 +396,6 @@
   position: relative;
 }
 
-.coinCircle {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%);
-  color: rgba(0, 0, 0, 0.04);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 30px;
-  font-weight: 800;
-  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.5);
-}
-
-.goldStack {
-  display: flex;
-  gap: 4px;
-  align-items: flex-end;
-}
-
-.goldBar {
-  width: 18px;
-  border-radius: 2px;
-  background: linear-gradient(180deg, #fcd34d 0%, #b45309 100%);
-}
-
 .cardDetails {
   padding: 14px;
   display: flex;
@@ -420,10 +414,12 @@
   font-size: 12px;
   color: var(--deriv-text-secondary);
   line-height: 1.4;
+  min-height: 4.875em;
 }
 
 .badgeRow {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
   margin-top: 4px;
 }
@@ -431,8 +427,8 @@
 .tagPill {
   font-size: 10px;
   font-weight: 600;
-  background-color: #eef1f4;
+  background-color: rgba(0, 0, 0, 0.04);
   color: #374151;
-  padding: 3px 6px;
+  padding: 4px 6px;
   border-radius: 4px;
 }

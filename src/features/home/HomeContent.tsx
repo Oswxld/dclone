@@ -11,8 +11,16 @@ import swapFreeIcon from '../../assets/SwapFree.webp';
 import moreIcon from '../../assets/More.png';
 import cryptoTransferHero from '../../assets/crypto_transfer.png';
 import metalsHero from '../../assets/Metals.png';
+import exchangeHighlightHero from '../../assets/exchange_highlight.webp';
 
 const BANNER_DATA = [
+  { 
+    id: 'Deriv Exchange', 
+    title: 'Deriv Exchange', 
+    desc: 'Buy, sell and trade popular crypto pairs on spot and futures 24/7.',
+    lottie: '/lottie 4.json',
+    icon: cryptoIcon 
+  },
   { 
     id: 'tradingview', 
     title: 'Trade with TradingView charts', 
@@ -133,10 +141,16 @@ export const HomeContent = () => {
             }}
           >
             {visibleBanners.map((item) => (
-              <div key={item.id} className={styles.carouselCard}>
+              <div 
+                key={item.id} 
+                className={`${styles.carouselCard} ${item.id === 'Deriv Exchange' ? styles.exchangeCardBg : ''}`}
+              >
                 <div className={styles.cardInner}>
                   <div className={styles.textContent}>
-                    <p className={styles.cardTitle}>{item.title}</p>
+                    <div className={styles.titleRow}>
+                      {item.icon && <img src={item.icon} alt={`${item.title} logo`} className={styles.titleIcon} />}
+                      <p className={styles.cardTitle}>{item.title}</p>
+                    </div>
                     <p className={styles.cardDesc}>{item.desc}</p>
                   </div>
 
@@ -254,7 +268,49 @@ export const HomeContent = () => {
       <section className={styles.highlightsSection}>
         <h2 className={styles.sectionTitle}>Highlights</h2>
         <div className={styles.carousel}>
-          {/* Card 1: Crypto transfers */}
+
+          {/* Card 1: DXN Futures */}
+          <div className={styles.highlightCard}>
+            <div className={styles.cardHero}>
+              <img
+                src={exchangeHighlightHero}
+                alt="DXN Futures candlestick chart"
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            </div>
+            <div className={styles.cardDetails}>
+              <h3 className={styles.cardHeading}>DXN Futures</h3>
+              <p className={styles.cardSubtext}>Go long or short on top pairs, with up to 50x leverage.</p>
+              <div className={styles.badgeRow}>
+                <span className={styles.tagPill}>DXN</span>
+                <span className={styles.tagPill}>BTC</span>
+                <span className={styles.tagPill}>ETH</span>
+                <span className={styles.tagPill}>SOL</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 2: Metals */}
+          <div className={styles.highlightCard}>
+            <div className={styles.cardHero}>
+              <img
+                src={metalsHero}
+                alt="Metals"
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            </div>
+            <div className={styles.cardDetails}>
+              <h3 className={styles.cardHeading}>Metals</h3>
+              <p className={styles.cardSubtext}>Key metals. Tight spreads. Up to 1:800 leverage</p>
+              <div className={styles.badgeRow}>
+                <span className={styles.tagPill}>Gold</span>
+                <span className={styles.tagPill}>Silver</span>
+                <span className={styles.tagPill}>Copper</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 3: Crypto transfers */}
           <div className={styles.highlightCard}>
             <div className={styles.cardHero}>
               <img
@@ -275,23 +331,6 @@ export const HomeContent = () => {
             </div>
           </div>
 
-          {/* Card 2: Metals */}
-          <div className={styles.highlightCard}>
-            <div className={styles.cardHero}>
-              <img
-                src={metalsHero}
-                alt="Metals"
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
-            </div>
-            <div className={styles.cardDetails}>
-              <h3 className={styles.cardHeading}>Metals</h3>
-              <p className={styles.cardSubtext}>Key metals. Tight spreads. Up to 1:800 leverage</p>
-              <div className={styles.badgeRow}>
-                <span className={styles.tagPill}>MT5</span>
-              </div>
-            </div>
-          </div>
         </div>
       </section>
     </main>

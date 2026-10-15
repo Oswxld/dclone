@@ -22,7 +22,7 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  color: #000000; /* Standard inactive neutral text */
+  color: #525252; /* Standard inactive neutral text (neutral-600) */
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
@@ -34,7 +34,7 @@
 
 /* Ensure the SVG explicitly inherits the current text color */
 .navItem svg {
-  fill: currentColor;
+  color: currentColor; /* Used to dynamically pass #ff444f to the inline SVG */
 }
 
 .active {

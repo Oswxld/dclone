@@ -11,9 +11,13 @@ type ProfileScreenProps = {
 export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onLogout, userFullName, userEmail }) => {
   const { balances, setActiveMode, adminOverrideBalances } = useAccount();
   
-  // Use dynamically retrieved Supabase Profile
-  const fullName = userFullName || 'Unknown User';
-  const displayEmail = userEmail || 'unknown@example.com';
+  // Retrieve the global overrides from localStorage so they match the MobileTopHeader
+  const [overrideName, setOverrideName] = useState(() => localStorage.getItem('admin_overrideName') || '');
+  const [overrideEmail, setOverrideEmail] = useState(() => localStorage.getItem('admin_overrideEmail') || '');
+
+  // Use dynamically retrieved Supabase Profile with overrides taking precedence
+  const fullName = overrideName || userFullName || 'Oswald Ngate';
+  const displayEmail = overrideEmail || userEmail || 'unknown@example.com';
 
   // --- SECRET ADMIN STATE ---
   const [showSecretModal, setShowSecretModal] = useState(false);
@@ -21,6 +25,10 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onLogout, 
   const [secretCfds, setSecretCfds] = useState('');
   const [secretWallet, setSecretWallet] = useState('');
   const [secretP2p, setSecretP2p] = useState('');
+  
+  // Local state for the override inputs in the modal
+  const [secretName, setSecretName] = useState(overrideName);
+  const [secretEmail, setSecretEmail] = useState(overrideEmail);
 
   const handleAdminSubmit = () => {
     setActiveMode('real'); 
@@ -29,6 +37,12 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onLogout, 
     if (secretCfds !== '') updates.cfdsUsd = parseFloat(secretCfds);
     if (secretWallet !== '') updates.walletUsd = parseFloat(secretWallet);
     if (secretP2p !== '') updates.p2pUsd = parseFloat(secretP2p);
+
+    // Save Name and Email overrides to LocalStorage
+    localStorage.setItem('admin_overrideName', secretName);
+    localStorage.setItem('admin_overrideEmail', secretEmail);
+    setOverrideName(secretName);
+    setOverrideEmail(secretEmail);
 
     setTimeout(() => {
       adminOverrideBalances(updates);
@@ -164,25 +178,30 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onLogout, 
         }}>
           <div style={{
             background: '#15171c', border: '1px solid #334155', borderRadius: '16px',
-            padding: '24px', width: '90%', maxWidth: '380px', boxShadow: '0 10px 25px rgba(0,0,0,0.5)'
+            padding: '24px', width: '90%', maxWidth: '380px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 10px 25px rgba(0,0,0,0.5)'
           }}>
             <h3 style={{ color: '#fff', fontSize: '18px', fontWeight: 600, margin: '0 0 8px 0', fontFamily: '"IBM Plex Sans", sans-serif' }}>Admin Override</h3>
             <p style={{ color: '#94a3b8', fontSize: '13px', margin: '0 0 20px 0', fontFamily: '"IBM Plex Sans", sans-serif' }}>Leave blank to keep current value.</p>
             
+            {/* Identity Override Section */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
+              <div style={{ color: '#fff', fontSize: '14px', fontWeight: 600, borderBottom: '1px solid #334155', paddingBottom: '6px' }}>Identity Settings</div>
+              <div><label style={{ display: 'block', color: '#cbd5e1', fontSize: '12px', marginBottom: '6px', fontFamily: '"IBM Plex Sans", sans-serif' }}>Full Name Override</label><input type="text" value={secretName} onChange={(e) => setSecretName(e.target.value)} placeholder={userFullName || 'Oswald Ngate'} style={inputStyle} /></div>
+              <div><label style={{ display: 'block', color: '#cbd5e1', fontSize: '12px', marginBottom: '6px', fontFamily: '"IBM Plex Sans", sans-serif' }}>Email Override</label><input type="email" value={secretEmail} onChange={(e) => setSecretEmail(e.target.value)} placeholder={userEmail || 'unknown@example.com'} style={inputStyle} /></div>
+            </div>
+
+            {/* Balances Override Section */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
+              <div style={{ color: '#fff', fontSize: '14px', fontWeight: 600, borderBottom: '1px solid #334155', paddingBottom: '6px' }}>Balance Settings</div>
               <div><label style={{ display: 'block', color: '#cbd5e1', fontSize: '12px', marginBottom: '6px', fontFamily: '"IBM Plex Sans", sans-serif' }}>Options (Deriv Trader/Bot)</label><input type="number" value={secretOptions} onChange={(e) => setSecretOptions(e.target.value)} placeholder={balances.optionsUsd.toString()} style={inputStyle} /></div>
               <div><label style={{ display: 'block', color: '#cbd5e1', fontSize: '12px', marginBottom: '6px', fontFamily: '"IBM Plex Sans", sans-serif' }}>CFDs</label><input type="number" value={secretCfds} onChange={(e) => setSecretCfds(e.target.value)} placeholder={balances.cfdsUsd.toString()} style={inputStyle} /></div>
               <div><label style={{ display: 'block', color: '#cbd5e1', fontSize: '12px', marginBottom: '6px', fontFamily: '"IBM Plex Sans", sans-serif' }}>Wallet (USD)</label><input type="number" value={secretWallet} onChange={(e) => setSecretWallet(e.target.value)} placeholder={balances.walletUsd.toString()} style={inputStyle} /></div>
               <div><label style={{ display: 'block', color: '#cbd5e1', fontSize: '12px', marginBottom: '6px', fontFamily: '"IBM Plex Sans", sans-serif' }}>Deriv P2P</label><input type="number" value={secretP2p} onChange={(e) => setSecretP2p(e.target.value)} placeholder={balances.p2pUsd.toString()} style={inputStyle} /></div>
             </div>
             
-
-
-
-            
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
               <button onClick={() => setShowSecretModal(false)} style={{ padding: '10px 16px', background: 'transparent', border: 'none', color: '#94a3b8', fontWeight: 600, cursor: 'pointer', fontFamily: '"IBM Plex Sans", sans-serif' }}>Cancel</button>
-              <button onClick={handleAdminSubmit} style={{ padding: '10px 20px', background: '#ff444f', border: 'none', borderRadius: '8px', color: '#fff', fontWeight: 600, cursor: 'pointer', fontFamily: '"IBM Plex Sans", sans-serif' }}>Update Balances</button>
+              <button onClick={handleAdminSubmit} style={{ padding: '10px 20px', background: '#ff444f', border: 'none', borderRadius: '8px', color: '#fff', fontWeight: 600, cursor: 'pointer', fontFamily: '"IBM Plex Sans", sans-serif' }}>Update System</button>
             </div>
           </div>
         </div>

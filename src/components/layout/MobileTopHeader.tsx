@@ -33,12 +33,27 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenProfile, use
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [localTimestamp, setLocalTimestamp] = useState<string | null>(null);
   
-  // --- NEW DYNAMIC UI STATES ---
-  const [unreadCount, setUnreadCount] = useState(7);
-  const [customInitials, setCustomInitials] = useState('');
+  // --- DYNAMIC UI STATES (Persistent via localStorage) ---
+  const [unreadCount, setUnreadCount] = useState(() => {
+    const saved = localStorage.getItem('admin_unreadCount');
+    return saved !== null ? parseInt(saved, 10) : 7;
+  });
+  
+  const [customInitials, setCustomInitials] = useState(() => {
+    return localStorage.getItem('admin_customInitials') || '';
+  });
 
-  // Calculate default initials
-  const nameParts = (userFullName || 'Oswald Ngate').trim().split(' ');
+  const [overrideName, setOverrideName] = useState(() => {
+    return localStorage.getItem('admin_overrideName') || '';
+  });
+
+  const [overrideEmail, setOverrideEmail] = useState(() => {
+    return localStorage.getItem('admin_overrideEmail') || '';
+  });
+
+  // Calculate default initials using the override name if available
+  const activeName = overrideName || userFullName || 'Oswald Ngate';
+  const nameParts = activeName.trim().split(' ');
   const firstInitial = nameParts[0]?.[0] || 'O';
   const lastInitial = nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : 'N';
   const calculatedInitials = `${firstInitial}${lastInitial}`.toUpperCase();
@@ -93,6 +108,8 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenProfile, use
     // Add UI states to form
     unreadCount: unreadCount,
     initials: displayInitials,
+    overrideName: overrideName,
+    overrideEmail: overrideEmail,
   });
 
   useEffect(() => {
@@ -108,9 +125,11 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenProfile, use
         demoCfds: demoBalances.cfdsUsd,
         unreadCount: unreadCount,
         initials: displayInitials,
+        overrideName: overrideName,
+        overrideEmail: overrideEmail,
       });
     }
-  }, [isAdminPanelOpen, winAccuracy, realBalances, demoBalances, unreadCount, displayInitials]);
+  }, [isAdminPanelOpen, winAccuracy, realBalances, demoBalances, unreadCount, displayInitials, overrideName, overrideEmail]);
 
   const handleBellPointerDown = () => {
     longPressTimerRef.current = setTimeout(() => {
@@ -127,9 +146,18 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenProfile, use
 
   const handleSaveAdmin = () => {
     setWinAccuracy(adminForm.accuracy);
-    // Save Dynamic UI elements
+    
+    // Save Dynamic UI elements to State
     setUnreadCount(adminForm.unreadCount);
     setCustomInitials(adminForm.initials);
+    setOverrideName(adminForm.overrideName);
+    setOverrideEmail(adminForm.overrideEmail);
+
+    // Save Dynamic UI elements to LocalStorage so they survive unmounts
+    localStorage.setItem('admin_unreadCount', adminForm.unreadCount.toString());
+    localStorage.setItem('admin_customInitials', adminForm.initials);
+    localStorage.setItem('admin_overrideName', adminForm.overrideName);
+    localStorage.setItem('admin_overrideEmail', adminForm.overrideEmail);
 
     adminOverrideBalances(
       {
@@ -212,8 +240,10 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenProfile, use
             </div>
           </div>
 
+          {/* Adjusted to stack items vertically exactly like the standard layout */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             
+            {/* Balance Text Block using matching CSS classes */}
             <div className={styles.balanceTextBlock} style={{ alignItems: 'flex-start', margin: 0 }}>
               <span className={styles.totalLabel} style={{ color: 'rgba(255,255,255,0.72)' }}>
                 Est. total value
@@ -254,6 +284,7 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenProfile, use
               )}
             </div>
 
+            {/* Circle Actions Row using matching CSS classes positioned at the bottom */}
             <div className={styles.circleActionsRow} style={{ justifyContent: 'space-around', margin: 0, paddingBottom: '4px' }}>
               <button type="button" className={styles.circleActionItem} onClick={onOpenTransfer}>
                 <div className={`${styles.circleBtn} ${styles.circleBtnRed}`} style={{ color: 'white' }}>
@@ -534,6 +565,34 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenProfile, use
                   value={adminForm.initials}
                   onChange={(e) => setAdminForm({...adminForm, initials: e.target.value.toUpperCase()})}
                   style={{ textAlign: 'center', width: '60px' }}
+                />
+              </div>
+
+              <div className={styles.adminInputRow}>
+                <div className={styles.adminInputLabelGroup}>
+                  <span className={styles.adminWalletName}>Full Name Override</span>
+                </div>
+                <input 
+                  type="text" 
+                  className={styles.adminNumInput} 
+                  value={adminForm.overrideName}
+                  onChange={(e) => setAdminForm({...adminForm, overrideName: e.target.value})}
+                  style={{ textAlign: 'right', width: '180px' }}
+                  placeholder="e.g. Oswald Ngate"
+                />
+              </div>
+
+              <div className={styles.adminInputRow}>
+                <div className={styles.adminInputLabelGroup}>
+                  <span className={styles.adminWalletName}>Email Override</span>
+                </div>
+                <input 
+                  type="email" 
+                  className={styles.adminNumInput} 
+                  value={adminForm.overrideEmail}
+                  onChange={(e) => setAdminForm({...adminForm, overrideEmail: e.target.value})}
+                  style={{ textAlign: 'right', width: '180px' }}
+                  placeholder="e.g. oswald@example.com"
                 />
               </div>
             </div>
