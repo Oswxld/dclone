@@ -127,6 +127,7 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
   const [simPhase, setSimPhase] = useState<'IDLE' | 'BUYING' | 'BOUGHT' | 'WON' | 'LOST'>('IDLE');
   
   const [currentDuration, setCurrentDuration] = useState<number>(1);
+  const preForcedWinRef = useRef<boolean | null>(null);
 
   // Aggregated Metrics
   const [totalStake, setTotalStake] = useState<number>(0);
@@ -221,39 +222,43 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
       
       // --- FORCE FINISH LOGIC: If we hit Stop while a contract is actively pending ---
       if (simPhase === 'BOUGHT' && activeContract) {
-        const forceWin = Math.random() < (winAccuracy / 100);
-        
-        // Grab values from activeContract state
-        const { market, action, stake, potentialPayout } = activeContract;
-        const startSpot = transactions[0]?.entrySpot || 868.0; 
+        const { action, stake, potentialPayout } = activeContract;
+        const startSpot = transactions[0]?.entrySpot || 868.0;
+        const isOneTickMatchDiff = ['Matches', 'Differs'].includes(action) && currentDuration === 1;
+
+        const forceWin = isOneTickMatchDiff && preForcedWinRef.current !== null
+          ? preForcedWinRef.current
+          : Math.random() < (winAccuracy / 100);
         
         // Fast-forward exit spot based on forced probability
         let exitSpot = startSpot;
-        if (['Rise', 'Fall', 'Under', 'Over', 'Even', 'Odd', 'Matches', 'Differs'].includes(action)) {
-            // Simplified forced resolution for the stop state
-            if (action === 'Rise') {
-                exitSpot = forceWin ? startSpot + 0.5 : startSpot - 0.5;
-            } else if (action === 'Fall') {
-                exitSpot = forceWin ? startSpot - 0.5 : startSpot + 0.5;
-            } else {
-                exitSpot = startSpot + (Math.random() - 0.5); // Fallback for digits in force-stop
-            }
+        if (isOneTickMatchDiff) {
+          // Strictly identical entry and exit spot for 1-tick Matches/Differs
+          exitSpot = startSpot;
+        } else if (['Rise', 'Fall', 'Under', 'Over', 'Even', 'Odd', 'Matches', 'Differs'].includes(action)) {
+          if (action === 'Rise') {
+            exitSpot = parseFloat((forceWin ? startSpot + 0.5 : startSpot - 0.5).toFixed(2));
+          } else if (action === 'Fall') {
+            exitSpot = parseFloat((forceWin ? startSpot - 0.5 : startSpot + 0.5).toFixed(2));
+          } else {
+            exitSpot = parseFloat((startSpot + (Math.random() - 0.5)).toFixed(2));
+          }
         }
         
         const isWin = forceWin;
         const tradeProfit = isWin 
-            ? parseFloat((potentialPayout - stake).toFixed(2)) 
-            : parseFloat((-stake).toFixed(2));
+          ? parseFloat((potentialPayout - stake).toFixed(2)) 
+          : parseFloat((-stake).toFixed(2));
 
         // Update Balances
         if (isWin) {
-            updateOptionsBalance(potentialPayout);
-            setTotalPayout((prev) => parseFloat((prev + potentialPayout).toFixed(2)));
-            setContractsWon((prev) => prev + 1);
-            setTotalProfitLoss((prev) => parseFloat((prev + tradeProfit).toFixed(2)));
+          updateOptionsBalance(potentialPayout);
+          setTotalPayout((prev) => parseFloat((prev + potentialPayout).toFixed(2)));
+          setContractsWon((prev) => prev + 1);
+          setTotalProfitLoss((prev) => parseFloat((prev + tradeProfit).toFixed(2)));
         } else {
-            setContractsLost((prev) => prev + 1);
-            setTotalProfitLoss((prev) => parseFloat((prev - stake).toFixed(2)));
+          setContractsLost((prev) => prev + 1);
+          setTotalProfitLoss((prev) => parseFloat((prev - stake).toFixed(2)));
         }
 
         // Update UI States
@@ -261,14 +266,14 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
 
         // Resolve Pending Skeleton Transaction
         setTransactions((prev) => {
-            const newTx = [...prev];
-            if (newTx.length > 0 && newTx[0].isPending) {
-                newTx[0].exitSpot = exitSpot;
-                newTx[0].isWin = isWin;
-                newTx[0].profit = tradeProfit;
-                newTx[0].isPending = false;
-            }
-            return newTx;
+          const newTx = [...prev];
+          if (newTx.length > 0 && newTx[0].isPending) {
+            newTx[0].exitSpot = exitSpot;
+            newTx[0].isWin = isWin;
+            newTx[0].profit = tradeProfit;
+            newTx[0].isPending = false;
+          }
+          return newTx;
         });
 
         // Write Final Log
@@ -284,7 +289,7 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
         
         // Let the WON/LOST UI flash briefly before resetting to IDLE
         setTimeout(() => {
-             setSimPhase('IDLE');
+          setSimPhase('IDLE');
         }, 1500);
       } else {
         setSimPhase('IDLE');
@@ -346,7 +351,8 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
     let payoutRate = 1.95;
     if (category === 'Digits') {
       if (tradeType === 'MATCHDIFF') {
-        payoutRate = actionLabel === 'Matches' ? 9.09 : 1.09;
+        // 8.93 multiplier yields 17.86 total payout (+15.86 USD profit) on a stake of 2
+        payoutRate = actionLabel === 'Matches' ? 8.93 : 1.09;
       } else if (tradeType === 'EVENODD') {
         payoutRate = 1.96;
       } else if (tradeType === 'OVERUNDER') {
@@ -366,7 +372,26 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
     setNumberOfRuns((prev) => prev + 1);
 
     setSimPhase('BOUGHT');
-    const startSpot = 868.0 + Math.random() * 2;
+
+    // Check if this is specifically a 1-Tick Matches/Differs trade
+    const isOneTickMatchDiff = category === 'Digits' && tradeType === 'MATCHDIFF' && duration === 1;
+    let startSpot = parseFloat((868.0 + Math.random() * 2).toFixed(2));
+
+    if (isOneTickMatchDiff) {
+      const forceWin = Math.random() < (winAccuracy / 100);
+      preForcedWinRef.current = forceWin;
+
+      const allDigits = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+      const winningDigits = actionLabel === 'Matches' ? [prediction] : allDigits.filter(d => d !== prediction);
+      const losingDigits = actionLabel === 'Matches' ? allDigits.filter(d => d !== prediction) : [prediction];
+
+      const finalDigit = forceWin ? pickRandom(winningDigits) : pickRandom(losingDigits);
+      const spotStr = startSpot.toFixed(2);
+      startSpot = parseFloat(spotStr.substring(0, spotStr.length - 1) + finalDigit);
+    } else {
+      preForcedWinRef.current = null;
+    }
+
     let currentSpot = startSpot;
     const currentTxId = Date.now().toString();
     const fakeContractId = Math.floor(27017000000 + Math.random() * 999999).toString();
@@ -411,56 +436,63 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
       await new Promise((r) => setTimeout(r, 1000));
       if (!isSimulatingRef.current) return;
 
-      let nextSpot = currentSpot + (Math.random() - 0.49) * 0.4;
+      let nextSpot = currentSpot;
 
-      if (t === duration) {
-        const forceWin = Math.random() < (winAccuracy / 100);
-        
-        if (category === 'Digits') {
-          let winningDigits: number[] = [];
-          let losingDigits: number[] = [];
-          const allDigits = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+      if (isOneTickMatchDiff) {
+        // Lock spot so Entry and Exit are 100% identical on 1-tick Matches/Differs
+        nextSpot = startSpot;
+      } else {
+        nextSpot = currentSpot + (Math.random() - 0.49) * 0.4;
+
+        if (t === duration) {
+          const forceWin = Math.random() < (winAccuracy / 100);
           
-          if (tradeType === 'MATCHDIFF') {
-            if (actionLabel === 'Matches') {
-              winningDigits = [prediction];
-              losingDigits = allDigits.filter(d => d !== prediction);
-            } else { 
-              winningDigits = allDigits.filter(d => d !== prediction);
-              losingDigits = [prediction];
+          if (category === 'Digits') {
+            let winningDigits: number[] = [];
+            let losingDigits: number[] = [];
+            const allDigits = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+            
+            if (tradeType === 'MATCHDIFF') {
+              if (actionLabel === 'Matches') {
+                winningDigits = [prediction];
+                losingDigits = allDigits.filter(d => d !== prediction);
+              } else { 
+                winningDigits = allDigits.filter(d => d !== prediction);
+                losingDigits = [prediction];
+              }
+            } else if (tradeType === 'EVENODD') {
+              const evens = [0, 2, 4, 6, 8];
+              const odds = [1, 3, 5, 7, 9];
+              if (actionLabel === 'Even') {
+                winningDigits = evens;
+                losingDigits = odds;
+              } else { 
+                winningDigits = odds;
+                losingDigits = evens;
+              }
+            } else if (tradeType === 'OVERUNDER') {
+              if (actionLabel === 'Over') {
+                winningDigits = allDigits.filter(d => d > prediction);
+                losingDigits = allDigits.filter(d => d <= prediction);
+              } else { 
+                winningDigits = allDigits.filter(d => d < prediction);
+                losingDigits = allDigits.filter(d => d >= prediction);
+              }
             }
-          } else if (tradeType === 'EVENODD') {
-            const evens = [0, 2, 4, 6, 8];
-            const odds = [1, 3, 5, 7, 9];
-            if (actionLabel === 'Even') {
-              winningDigits = evens;
-              losingDigits = odds;
-            } else { 
-              winningDigits = odds;
-              losingDigits = evens;
-            }
-          } else if (tradeType === 'OVERUNDER') {
-            if (actionLabel === 'Over') {
-              winningDigits = allDigits.filter(d => d > prediction);
-              losingDigits = allDigits.filter(d => d <= prediction);
-            } else { 
-              winningDigits = allDigits.filter(d => d < prediction);
-              losingDigits = allDigits.filter(d => d >= prediction);
-            }
-          }
 
-          const finalDigit = forceWin ? pickRandom(winningDigits) : pickRandom(losingDigits);
-          const spotStr = nextSpot.toFixed(2);
-          const forcedSpotStr = spotStr.substring(0, spotStr.length - 1) + finalDigit;
-          nextSpot = parseFloat(forcedSpotStr);
+            const finalDigit = forceWin ? pickRandom(winningDigits) : pickRandom(losingDigits);
+            const spotStr = nextSpot.toFixed(2);
+            const forcedSpotStr = spotStr.substring(0, spotStr.length - 1) + finalDigit;
+            nextSpot = parseFloat(forcedSpotStr);
 
-        } else {
-          if (actionLabel === 'Rise') {
-            if (forceWin && nextSpot <= startSpot) nextSpot = startSpot + Math.random() * 0.5 + 0.01;
-            if (!forceWin && nextSpot > startSpot) nextSpot = startSpot - Math.random() * 0.5 - 0.01;
-          } else { 
-            if (forceWin && nextSpot >= startSpot) nextSpot = startSpot - Math.random() * 0.5 - 0.01;
-            if (!forceWin && nextSpot < startSpot) nextSpot = startSpot + Math.random() * 0.5 + 0.01;
+          } else {
+            if (actionLabel === 'Rise') {
+              if (forceWin && nextSpot <= startSpot) nextSpot = startSpot + Math.random() * 0.5 + 0.01;
+              if (!forceWin && nextSpot > startSpot) nextSpot = startSpot - Math.random() * 0.5 - 0.01;
+            } else { 
+              if (forceWin && nextSpot >= startSpot) nextSpot = startSpot - Math.random() * 0.5 - 0.01;
+              if (!forceWin && nextSpot < startSpot) nextSpot = startSpot + Math.random() * 0.5 + 0.01;
+            }
           }
         }
       }
@@ -480,7 +512,7 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
     if (!isSimulatingRef.current) return;
 
     let isWin = false;
-    const exitSpot = parseFloat(currentSpot.toFixed(2));
+    const exitSpot = isOneTickMatchDiff ? startSpot : parseFloat(currentSpot.toFixed(2));
     const finalDigit = parseInt(exitSpot.toFixed(2).slice(-1), 10);
 
     if (category === 'Digits') {
@@ -522,7 +554,7 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
       ...prev,
     ]);
 
-    const finalEntrySpot = category === 'Digits' ? exitSpot : parseFloat(startSpot.toFixed(2));
+    const finalEntrySpot = isOneTickMatchDiff ? exitSpot : parseFloat(startSpot.toFixed(2));
 
     setTransactions((prev) => prev.map((tx) => 
       tx.id === currentTxId ? {
@@ -680,7 +712,6 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
   const handleUndo = () => workspaceRef.current?.undo(false);
   const handleRedo = () => workspaceRef.current?.undo(true);
 
-  const isRunning = simPhase !== 'IDLE';
   const isBuying = simPhase === 'BUYING';
   const isBought = simPhase === 'BOUGHT';
   const isFinished = simPhase === 'WON' || simPhase === 'LOST';
