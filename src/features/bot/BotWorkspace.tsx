@@ -20,6 +20,7 @@ interface TransactionItem {
   profit: number;
   isWin: boolean;
   isPending?: boolean;
+  duration: number; // Added to track if it's a 1-tick trade for the UI
 }
 
 interface JournalLog {
@@ -164,7 +165,7 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
   }>({
     market: 'Volatility 100 (1s) Index',
     action: 'Rise',
-    stake: 0.335, // Set default starting stake to 0.335
+    stake: 0.335,
     potentialPayout: 1.9,
     currentValue: 1.85,
     profit: 0.85,
@@ -269,6 +270,8 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
           const newTx = [...prev];
           if (newTx.length > 0 && newTx[0].isPending) {
             newTx[0].exitSpot = exitSpot;
+            // Also ensure the entry spot perfectly matches the exit spot on resolution
+            if (isOneTickMatchDiff) newTx[0].entrySpot = exitSpot; 
             newTx[0].isWin = isWin;
             newTx[0].profit = tradeProfit;
             newTx[0].isPending = false;
@@ -418,6 +421,7 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
         profit: 0,
         isWin: false,
         isPending: true,
+        duration: duration, // Record the duration to control UI skeleton logic
       },
       ...prev,
     ]);
@@ -932,7 +936,11 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
                           </tr>
                         </thead>
                         <tbody>
-                          {transactions.map((tx) => (
+                          {transactions.map((tx) => {
+                            // Only apply double-skeleton logic to 1-Tick Match/Diff contracts
+                            const isMatchDiff1Tick = ['Matches', 'Differs'].includes(tx.type) && tx.duration === 1;
+                            
+                            return (
                             <tr key={tx.id} className={styles.transTableRow}>
                               <td>
                                 <div className={`${styles.typeColumn} ${tx.isPending ? styles.slideInCell : ''}`}>
@@ -944,10 +952,16 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
                                 <div className={`${styles.spotStack} ${tx.isPending ? styles.slideInCell : ''}`}>
                                   <div className={styles.spotLine}>
                                     <div className={styles.spotCircleRed} />
-                                    <span>{tx.entrySpot.toFixed(2)}</span>
+                                    {/* Render skeleton for Entry spot ONLY if it's a pending 1-tick Match/Diff */}
+                                    {tx.isPending && isMatchDiff1Tick ? (
+                                      <div className={styles.skeletonBar} />
+                                    ) : (
+                                      <span>{tx.entrySpot.toFixed(2)}</span>
+                                    )}
                                    </div>
                                   <div className={styles.spotLine}>
                                     <div className={styles.spotCircleGray} />
+                                    {/* Render skeleton for Exit spot for all pending trades */}
                                     {tx.isPending ? (
                                       <div className={styles.skeletonBar} />
                                     ) : (
@@ -969,7 +983,7 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
                                 </div>
                               </td>
                             </tr>
-                          ))}
+                          )})}
                         </tbody>
                       </table>
                     </div>

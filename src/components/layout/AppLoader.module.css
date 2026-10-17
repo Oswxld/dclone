@@ -1,0 +1,58 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&display=swap');
+
+.loaderContainer {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100vh;
+  background-color: #eceef1; /* Dark theme to match the main app shell */
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.initLoaderContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.initWave {
+  display: flex;
+  align-items: center;
+  gap: 4px; /* Tight spacing between the bars */
+  height: 24px;
+}
+
+.initBar {
+  width: 6px;
+  height: 100%;
+  background-color: #ff444f; /* Deriv Official Red */
+  border-radius: 3px;
+  animation: derivWave 1.2s infinite ease-in-out;
+  transform: scaleY(0.4);
+}
+
+.initText {
+  font-size: 14px;
+  font-family: 'IBM Plex Sans', sans-serif;
+  color: #ffffff;
+  margin-top: 4px;
+  font-weight: 400;
+}
+
+/* 
+  The animation stretches the bar vertically at the 20% mark, 
+  and shrinks it back down by the 40% mark, allowing the staggered 
+  animation delays (0s, 0.1s, etc.) to create a clean left-to-right ripple.
+*/
+@keyframes derivWave {
+  0%, 40%, 100% {
+    transform: scaleY(0.4);
+  }
+  20% {
+    transform: scaleY(1);
+  }
+}

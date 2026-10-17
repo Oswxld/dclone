@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { AccountProvider } from './context/AccountContext';
 import { MobileTopHeader } from './components/layout/MobileTopHeader';
 import { MobileBottomNav } from './components/layout/MobileBottomNav';
+import { AppLoader } from './components/layout/AppLoader'; // <-- NEW IMPORT
 import { HomeContent } from './features/home/HomeContent';
 import { CfdsContent } from './features/cfds/CfdsContent';
 import { CryptoContent } from './features/crypto/CryptoContent';
@@ -123,7 +124,7 @@ export const App = () => {
   const handleLaunchBot = () => setIsBotLoading(true);
   const handleBotLoaded = () => { setIsBotLoading(false); setIsBotActive(true); };
   
-  // FIX: Dynamic Exit routing based on the tab pressed
+  // Dynamic Exit routing based on the tab pressed
   const handleExitBot = (destinationTab?: string) => { 
     setIsBotActive(false); 
     if (destinationTab && ['home', 'cfds', 'crypto', 'options', 'portfolio'].includes(destinationTab)) {
@@ -135,11 +136,8 @@ export const App = () => {
 
   // --- RENDERING ROUTER ---
   if (appState === 'loading') {
-    return (
-      <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0b0e14', color: '#fff', fontFamily: 'sans-serif' }}>
-        Authenticating...
-      </div>
-    );
+    // Renders our new red animated loader instead of hardcoded text
+    return <AppLoader />;
   }
 
   if (appState !== 'authenticated') {
