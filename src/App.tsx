@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { AccountProvider } from './context/AccountContext';
 import { MobileTopHeader } from './components/layout/MobileTopHeader';
 import { MobileBottomNav } from './components/layout/MobileBottomNav';
-import { AppLoader } from './components/layout/AppLoader'; // <-- NEW IMPORT
+import { AppLoader } from './components/layout/AppLoader';
 import { HomeContent } from './features/home/HomeContent';
 import { CfdsContent } from './features/cfds/CfdsContent';
 import { CryptoContent } from './features/crypto/CryptoContent';
@@ -38,7 +38,8 @@ export const App = () => {
   const [localDeviceId, setLocalDeviceId] = useState('');
   const [userProfile, setUserProfile] = useState<{ fullName: string; email: string } | null>(null);
 
-  const verifyUserProfile = async (session: Session) => {
+  // Added isNewLogin flag. If true, we forcefully auto-upsert the device ID.
+  const verifyUserProfile = async (session: Session, isNewLogin: boolean = false) => {
     const email = session.user.email;
     if (!email) return;
 
@@ -58,7 +59,7 @@ export const App = () => {
         const fullName = session.user.user_metadata?.full_name || 'Unknown User';
         const { data: newProfile } = await supabase
           .from('profiles')
-          .insert([{ email, full_name: fullName, deriv_clone_decide_id_string: '' }])
+          .insert([{ email, full_name: fullName, deriv_clone_decide_id_string: deviceId }]) // Auto-bind on creation
           .select()
           .single();
         profile = newProfile;
@@ -72,12 +73,24 @@ export const App = () => {
       // 3. Security Gate: Verify Device ID
       const dbDeviceId = profile.deriv_clone_decide_id_string || '';
 
-      if (dbDeviceId === '') {
-        setAppState('device_pending');
+      if (isNewLogin || dbDeviceId === '') {
+        // AUTO-UPSERT LOGIC: 
+        // If they explicitly just logged in (or the DB is somehow empty), 
+        // overwrite the DB with their current local device ID.
+        await supabase
+          .from('profiles')
+          .update({ deriv_clone_decide_id_string: deviceId })
+          .eq('email', email);
+
+        setUserProfile({ fullName: profile.full_name, email: profile.email });
+        setAppState('authenticated');
       } else if (dbDeviceId !== deviceId) {
+        // ONE DEVICE PER SESSION LOGIC:
+        // If they are just refreshing the page but the DB ID was changed by someone else
+        // logging in elsewhere, reject them. They must log out and back in to steal it back.
         setAppState('device_rejected');
       } else {
-        // Validation passed! Save global user info and log them in
+        // Standard normal authenticated flow
         setUserProfile({ fullName: profile.full_name, email: profile.email });
         setAppState('authenticated');
       }
@@ -87,19 +100,20 @@ export const App = () => {
   };
 
   useEffect(() => {
-    // Check active session on initial load
+    // Check active session on initial load (not a new login, just a refresh)
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        verifyUserProfile(session);
+        verifyUserProfile(session, false);
       } else {
         setAppState('unauthenticated');
       }
     });
 
-    // Listen for auth state changes (login, logout, refresh)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    // Listen for auth state changes (login, logout)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
-        verifyUserProfile(session);
+        // If the event is SIGNED_IN, they just entered credentials. Trigger the auto-upsert!
+        verifyUserProfile(session, event === 'SIGNED_IN');
       } else {
         setAppState('unauthenticated');
         setUserProfile(null);
@@ -136,7 +150,6 @@ export const App = () => {
 
   // --- RENDERING ROUTER ---
   if (appState === 'loading') {
-    // Renders our new red animated loader instead of hardcoded text
     return <AppLoader />;
   }
 
