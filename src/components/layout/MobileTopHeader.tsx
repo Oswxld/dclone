@@ -10,11 +10,12 @@ import { AddFundsIcon, SendIcon } from '../../assets/Icons';
 type MobileTopHeaderProps = {
   currentTab: NavigationTab;
   onOpenTransfer?: () => void;
+  onOpenWithdraw?: () => void; // <-- ADDED PROP
   onOpenProfile?: () => void;
   userFullName?: string; 
 };
 
-export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenProfile, userFullName }: MobileTopHeaderProps) => {
+export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenWithdraw, onOpenProfile, userFullName }: MobileTopHeaderProps) => {
   const { 
     balances, 
     activeMode, 
@@ -52,7 +53,7 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenProfile, use
   });
 
   // Calculate default initials using the override name if available
-  const activeName = overrideName || userFullName || 'Oswald Ngate';
+  const activeName = overrideName || userFullName || 'oswald ngate';
   const nameParts = activeName.trim().split(' ');
   const firstInitial = nameParts[0]?.[0] || 'O';
   const lastInitial = nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : 'N';
@@ -508,7 +509,8 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenProfile, use
                 <span className={styles.circleBtnLabel}>Transfer</span>
               </button>
 
-              <button type="button" className={styles.circleActionItem} onClick={onOpenTransfer}>
+              {/* FIX: SWAPPED onOpenTransfer FOR onOpenWithdraw HERE */}
+              <button type="button" className={styles.circleActionItem} onClick={onOpenWithdraw}>
                 <div className={`${styles.circleBtn} ${styles.circleBtnOutline}`}>
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="28" height="28" role="img" fill="currentColor">
                     <path d="M24.125 16.5a.64.64 0 0 1-.625.625h-15a.617.617 0 0 1-.625-.625c0-.312.273-.625.625-.625h15c.313 0 .625.313.625.625"></path>

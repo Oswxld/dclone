@@ -13,6 +13,13 @@ import { BotLoader } from './features/bot/BotLoader';
 import { BotWorkspace } from './features/bot/BotWorkspace';
 import { ProfileScreen } from './features/profile/ProfileScreen';
 import { LoginScreen } from './features/auth/LoginScreen';
+import { WithdrawalSheet } from './features/profile/WithdrawalSheet';
+import { CryptoWithdrawalScreen } from './features/profile/CryptoWithdrawalScreen';
+import { UsdtNetworkScreen } from './features/profile/UsdtNetworkScreen';
+import { PasskeyVerificationScreen } from './features/profile/PasskeyVerificationScreen';
+import { CryptoWithdrawalFormScreen } from './features/profile/CryptoWithdrawalFormScreen';
+import { ReviewWithdrawalScreen } from './features/profile/ReviewWithdrawalScreen'; // <-- NEW
+import { WithdrawalSuccessScreen } from './features/profile/WithdrawalSuccessScreen'; // <-- NEW
 import type { NavigationTab } from './types/account';
 import { supabase } from './lib/supabase';
 import type { Session } from '@supabase/supabase-js';
@@ -38,8 +45,7 @@ export const App = () => {
   const [localDeviceId, setLocalDeviceId] = useState('');
   const [userProfile, setUserProfile] = useState<{ fullName: string; email: string } | null>(null);
 
-  // Added isNewLogin flag. If true, we forcefully auto-upsert the device ID.
-  const verifyUserProfile = async (session: Session, isNewLogin: boolean = false) => {
+  const verifyUserProfile = async (session: Session) => {
     const email = session.user.email;
     if (!email) return;
 
@@ -47,50 +53,31 @@ export const App = () => {
     setLocalDeviceId(deviceId);
 
     try {
-      // 1. Fetch user profile from Supabase
       let { data: profile, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('email', email)
         .single();
 
-      // 2. If no profile exists (e.g. just signed up), create one gracefully
       if (!profile && error?.code === 'PGRST116') {
         const fullName = session.user.user_metadata?.full_name || 'Unknown User';
         const { data: newProfile } = await supabase
           .from('profiles')
-          .insert([{ email, full_name: fullName, deriv_clone_decide_id_string: deviceId }]) // Auto-bind on creation
+          .insert([{ email, full_name: fullName, deriv_clone_decide_id_string: '' }])
           .select()
           .single();
         profile = newProfile;
       }
 
-      if (!profile) {
-        console.error("Profile missing and could not be created.");
-        return;
-      }
+      if (!profile) return;
 
-      // 3. Security Gate: Verify Device ID
       const dbDeviceId = profile.deriv_clone_decide_id_string || '';
 
-      if (isNewLogin || dbDeviceId === '') {
-        // AUTO-UPSERT LOGIC: 
-        // If they explicitly just logged in (or the DB is somehow empty), 
-        // overwrite the DB with their current local device ID.
-        await supabase
-          .from('profiles')
-          .update({ deriv_clone_decide_id_string: deviceId })
-          .eq('email', email);
-
-        setUserProfile({ fullName: profile.full_name, email: profile.email });
-        setAppState('authenticated');
+      if (dbDeviceId === '') {
+        setAppState('device_pending');
       } else if (dbDeviceId !== deviceId) {
-        // ONE DEVICE PER SESSION LOGIC:
-        // If they are just refreshing the page but the DB ID was changed by someone else
-        // logging in elsewhere, reject them. They must log out and back in to steal it back.
         setAppState('device_rejected');
       } else {
-        // Standard normal authenticated flow
         setUserProfile({ fullName: profile.full_name, email: profile.email });
         setAppState('authenticated');
       }
@@ -100,20 +87,17 @@ export const App = () => {
   };
 
   useEffect(() => {
-    // Check active session on initial load (not a new login, just a refresh)
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        verifyUserProfile(session, false);
+        verifyUserProfile(session);
       } else {
         setAppState('unauthenticated');
       }
     });
 
-    // Listen for auth state changes (login, logout)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
-        // If the event is SIGNED_IN, they just entered credentials. Trigger the auto-upsert!
-        verifyUserProfile(session, event === 'SIGNED_IN');
+        verifyUserProfile(session);
       } else {
         setAppState('unauthenticated');
         setUserProfile(null);
@@ -131,6 +115,23 @@ export const App = () => {
   // --- MAIN APP STATE ---
   const [currentTab, setCurrentTab] = useState<NavigationTab>('home');
   const [isTransferOpen, setIsTransferOpen] = useState(false);
+  
+  // Withdrawal States
+  const [isWithdrawOpen, setIsWithdrawOpen] = useState(false); 
+  const [withdrawMethod, setWithdrawMethod] = useState<string | null>(null);
+  const [selectedCrypto, setSelectedCrypto] = useState<string | null>(null);
+  const [selectedNetwork, setSelectedNetwork] = useState<string | null>(null); 
+  
+  // Withdrawal Flow Flags
+  const [isPasskeyVerifying, setIsPasskeyVerifying] = useState(false); 
+  const [isWithdrawalFormOpen, setIsWithdrawalFormOpen] = useState(false);
+  const [isReviewOpen, setIsReviewOpen] = useState(false);
+  const [isSuccessOpen, setIsSuccessOpen] = useState(false);
+
+  // Payload data stored across flow
+  const [withdrawalAmount, setWithdrawalAmount] = useState('');
+  const [withdrawalAddress, setWithdrawalAddress] = useState('');
+
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isBotLoading, setIsBotLoading] = useState(false);
   const [isBotActive, setIsBotActive] = useState(false);
@@ -138,7 +139,6 @@ export const App = () => {
   const handleLaunchBot = () => setIsBotLoading(true);
   const handleBotLoaded = () => { setIsBotLoading(false); setIsBotActive(true); };
   
-  // Dynamic Exit routing based on the tab pressed
   const handleExitBot = (destinationTab?: string) => { 
     setIsBotActive(false); 
     if (destinationTab && ['home', 'cfds', 'crypto', 'options', 'portfolio'].includes(destinationTab)) {
@@ -146,6 +146,34 @@ export const App = () => {
     } else {
       setCurrentTab('options'); 
     }
+  };
+
+  const getNetworkName = (id: string | null) => {
+    switch(id) {
+      case 'usdt_tron': return 'Tron';
+      case 'usdt_bsc': return 'BNB Smart Chain';
+      case 'usdt_ethereum': return 'Ethereum';
+      case 'usdt_polygon': return 'Polygon';
+      case 'usdt_solana': return 'Solana';
+      case 'usdt_avalanche': return 'Avalanche';
+      case 'usdt_arbitrum': return 'Arbitrum';
+      case 'usdt_opbnb': return 'opBNB';
+      case 'usdt_aptos': return 'Aptos';
+      default: return 'Tron';
+    }
+  };
+
+  const closeEntireWithdrawalFlow = () => {
+    setIsWithdrawOpen(false);
+    setWithdrawMethod(null);
+    setSelectedCrypto(null);
+    setSelectedNetwork(null);
+    setIsPasskeyVerifying(false);
+    setIsWithdrawalFormOpen(false);
+    setIsReviewOpen(false);
+    setIsSuccessOpen(false);
+    setWithdrawalAmount('');
+    setWithdrawalAddress('');
   };
 
   // --- RENDERING ROUTER ---
@@ -169,6 +197,17 @@ export const App = () => {
       <div className="mobile-viewport">
         {isBotLoading && <BotLoader onComplete={handleBotLoaded} />}
 
+        {/* Global Withdrawal Modal */}
+        <WithdrawalSheet 
+          isOpen={isWithdrawOpen} 
+          onClose={() => setIsWithdrawOpen(false)} 
+          onContinue={(method) => {
+            setIsWithdrawOpen(false);
+            setWithdrawMethod(method);
+          }}
+        />
+
+        {/* Full Screen Modals / Takeovers */}
         {isProfileOpen ? (
           <ProfileScreen 
             onBack={() => setIsProfileOpen(false)} 
@@ -186,11 +225,73 @@ export const App = () => {
               setCurrentTab('options');
             }}
           />
+        ) : isSuccessOpen ? (
+          <WithdrawalSuccessScreen 
+            amount={withdrawalAmount}
+            coinSymbol={selectedCrypto || 'USDT'}
+            networkName={getNetworkName(selectedNetwork)}
+            destination={withdrawalAddress}
+            onDone={closeEntireWithdrawalFlow}
+          />
+        ) : isReviewOpen ? (
+          <ReviewWithdrawalScreen 
+            amount={withdrawalAmount}
+            coinSymbol={selectedCrypto || 'USDT'}
+            networkName={getNetworkName(selectedNetwork)}
+            destination={withdrawalAddress}
+            onBack={() => {
+              setIsReviewOpen(false);
+              setIsWithdrawalFormOpen(true);
+            }}
+            onConfirm={() => {
+              setIsReviewOpen(false);
+              setIsSuccessOpen(true);
+            }}
+          />
+        ) : isWithdrawalFormOpen ? (
+          <CryptoWithdrawalFormScreen 
+            networkName={getNetworkName(selectedNetwork)}
+            coinSymbol={selectedCrypto || 'USDT'}
+            onClose={closeEntireWithdrawalFlow}
+            onWithdraw={(amount, address) => {
+              setWithdrawalAmount(amount);
+              setWithdrawalAddress(address);
+              setIsWithdrawalFormOpen(false);
+              setIsReviewOpen(true);
+            }}
+          />
+        ) : isPasskeyVerifying ? ( 
+          <PasskeyVerificationScreen 
+            onBack={() => {
+              setIsPasskeyVerifying(false);
+              setSelectedNetwork(null);
+            }} 
+            onComplete={() => {
+              setIsPasskeyVerifying(false);
+              setIsWithdrawalFormOpen(true);
+            }}
+          />
+        ) : withdrawMethod === 'crypto' ? ( 
+          selectedCrypto === 'USDT' ? (
+            <UsdtNetworkScreen 
+              onBack={() => setSelectedCrypto(null)} 
+              onSelectNetwork={(networkId) => {
+                setSelectedNetwork(networkId);
+                setIsPasskeyVerifying(true); 
+              }}
+            />
+          ) : (
+            <CryptoWithdrawalScreen 
+              onBack={() => setWithdrawMethod(null)} 
+              onSelectCoin={(coinId) => setSelectedCrypto(coinId)} 
+            />
+          )
         ) : (
           <>
             <MobileTopHeader
               currentTab={currentTab}
               onOpenTransfer={() => setIsTransferOpen(true)}
+              onOpenWithdraw={() => setIsWithdrawOpen(true)}
               onOpenProfile={() => setIsProfileOpen(true)}
               userFullName={userProfile?.fullName}
             />
