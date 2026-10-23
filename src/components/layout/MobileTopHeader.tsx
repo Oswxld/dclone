@@ -10,7 +10,7 @@ import { AddFundsIcon, SendIcon } from '../../assets/Icons';
 type MobileTopHeaderProps = {
   currentTab: NavigationTab;
   onOpenTransfer?: () => void;
-  onOpenWithdraw?: () => void; // <-- ADDED PROP
+  onOpenWithdraw?: () => void;
   onOpenProfile?: () => void;
   userFullName?: string; 
 };
@@ -450,10 +450,27 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenWithdraw, on
             )}
           </div>
 
+          {/* --- NEW CIRCULAR BUTTONS FOR HOME TAB --- */}
           {currentTab === 'home' && (
-            <button type="button" className={styles.homeDepositBtn}>
-              Deposit
-            </button>
+            <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+              <button type="button" className={styles.circleActionItem} onClick={onOpenTransfer}>
+                <div className={`${styles.circleBtn} ${styles.circleBtnRed}`}>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="28" height="28" role="img" fill="currentColor">
+                    <path d="M16.625 9v6.875H23.5c.313 0 .625.313.625.625a.64.64 0 0 1-.625.625h-6.875V24a.64.64 0 0 1-.625.625.617.617 0 0 1-.625-.625v-6.875H8.5a.617.617 0 0 1-.625-.625c0-.312.273-.625.625-.625h6.875V9c0-.312.273-.625.625-.625.313 0 .625.313.625.625"></path>
+                  </svg>
+                </div>
+                <span className={styles.circleBtnLabel}>Deposit</span>
+              </button>
+
+              <button type="button" className={styles.circleActionItem} onClick={onOpenTransfer}>
+                <div className={`${styles.circleBtn} ${styles.circleBtnOutline}`}>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="28" height="28" role="img" fill="currentColor">
+                    <path d="m24.555 11.969-3.75 3.75a.66.66 0 0 1-.899 0 .66.66 0 0 1 0-.899l2.696-2.695H7.875a.617.617 0 0 1-.625-.625c0-.312.273-.625.625-.625h14.727l-2.696-2.656a.66.66 0 0 1 0-.899.66.66 0 0 1 .899 0l3.75 3.75a.66.66 0 0 1 0 .899m-13.399 13.75-3.75-3.75a.66.66 0 0 1 0-.899l3.75-3.75a.66.66 0 0 1 .899 0 .66.66 0 0 1 0 .899l-2.696 2.656h14.766c.313 0 .625.313.625.625a.64.64 0 0 1-.625.625H9.359l2.696 2.695a.66.66 0 0 1 0 .899.66.66 0 0 1-.899 0"></path>
+                  </svg>
+                </div>
+                <span className={styles.circleBtnLabel}>Transfer</span>
+              </button>
+            </div>
           )}
 
           {(currentTab === 'cfds' || currentTab === 'options') && (
@@ -509,7 +526,6 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenWithdraw, on
                 <span className={styles.circleBtnLabel}>Transfer</span>
               </button>
 
-              {/* FIX: SWAPPED onOpenTransfer FOR onOpenWithdraw HERE */}
               <button type="button" className={styles.circleActionItem} onClick={onOpenWithdraw}>
                 <div className={`${styles.circleBtn} ${styles.circleBtnOutline}`}>
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="28" height="28" role="img" fill="currentColor">

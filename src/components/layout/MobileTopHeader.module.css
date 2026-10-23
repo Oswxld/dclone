@@ -171,7 +171,7 @@
   align-items: flex-start;
   margin: 0;
   padding: 0;
-  gap: 0; /* Ensures 0 padding between stacked elements */
+  gap: 0; 
 }
 
 .totalLabel {
@@ -188,13 +188,13 @@
   align-items: center;
   gap: 8px;
   margin: 0;
-  padding: 2px 0; /* Just enough space for extrabold text to not clip */
+  padding: 2px 0; 
   min-height: 34px;
 }
 
 .combinedAmount {
   font-family: Inter, "Inter Fallback";
-  font-size: 20px; /* Reduced from 24px to perfectly match Deriv */
+  font-size: 20px; 
   font-weight: 800; 
   white-space: nowrap;
   color: #ffffff;
@@ -204,7 +204,7 @@
 
 .timestamp {
   font-family: Inter, "Inter Fallback";
-  font-size: 12px; /* Reduced from 13px */
+  font-size: 12px; 
   color: rgba(255, 255, 255, 0.72);
   margin: 0;
   line-height: 1.2;
@@ -228,9 +228,9 @@
 .circleActionsRow {
   display: flex;
   align-items: center;
-  justify-content: space-around; /* Authentically spreads buttons across the container width */
+  justify-content: space-around; 
   width: 100%;
-  margin-top: 24px; /* Separation from the text block above */
+  margin-top: 24px; 
 }
 
 .circleActionItem {
@@ -264,7 +264,7 @@
 }
 
 .circleBtnRed:hover {
-  background-color: #d82b3a; /* Hover state for red btn */
+  background-color: #d82b3a; 
 }
 
 .circleBtnOutline {
@@ -286,7 +286,6 @@
   font-weight: 500;
 }
 
-/* Special SVG resize just for the Trade icon */
 .svgTradeIcon {
   height: 28px;
   width: 28px;
@@ -414,22 +413,6 @@
   width: 100%;
 }
 
-.homeDepositBtn {
-  background: rgb(255, 68, 79);
-  color: rgb(255, 255, 255);
-  font-family: Inter, "Inter Fallback";
-  font-size: 14px;
-  font-weight: 700;
-  padding: 11px 24px;
-  border-radius: 24px;
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.homeDepositBtn:hover {
-  background-color: #d82b3a;
-}
 
 /*ADMIN CONTROL*/
 
