@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAccount } from '../../context/AccountContext';
+import { supabase } from '../../lib/supabase'; // <-- Added Supabase import
 import derivMobileAppImg from '../../assets/deriv-mobile-app.png';
 
 type ProfileScreenProps = {
@@ -27,16 +28,23 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onLogout, 
   const fullName = overrideName || userFullName || 'oswald ngate';
   const displayEmail = overrideEmail || userEmail || 'oscargikandi@gmail.com';
 
-  // --- SECRET ADMIN STATE ---
+  // --- SECRET ADMIN STATE (Context / Local Storage) ---
   const [showSecretModal, setShowSecretModal] = useState(false);
   const [secretOptions, setSecretOptions] = useState('');
   const [secretCfds, setSecretCfds] = useState('');
   const [secretWallet, setSecretWallet] = useState('');
   const [secretP2p, setSecretP2p] = useState('');
   
-  // Local state for the override inputs in the modal
   const [secretName, setSecretName] = useState(overrideName);
   const [secretEmail, setSecretEmail] = useState(overrideEmail);
+
+  // --- NEW: SECRET CRYPTO DB OVERRIDE STATE ---
+  const [showCryptoModal, setShowCryptoModal] = useState(false);
+  const [secretUsdt, setSecretUsdt] = useState('');
+  const [secretBtc, setSecretBtc] = useState('');
+  const [isUpdatingCrypto, setIsUpdatingCrypto] = useState(false);
+  const [cryptoError, setCryptoError] = useState('');
+  const [cryptoSuccess, setCryptoSuccess] = useState('');
 
   const handleAdminSubmit = () => {
     setActiveMode('real'); 
@@ -60,6 +68,92 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onLogout, 
       setSecretWallet('');
       setSecretP2p('');
     }, 50);
+  };
+
+  // Update only the demo Binance wallet row belonging to this signed-in user.
+  // Returning the updated row is essential: Supabase can report no error
+  // when the UPDATE matches zero rows (e.g. different auth user / RLS).
+  const handleCryptoAdminSubmit = async () => {
+    if (isUpdatingCrypto) return;
+    setCryptoError('');
+    setCryptoSuccess('');
+    setIsUpdatingCrypto(true);
+
+    try {
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError) throw authError;
+      if (!user) throw new Error('You must sign in before updating your demo wallet.');
+
+      const usdtText = secretUsdt.trim();
+      const btcText = secretBtc.trim();
+      if (!usdtText && !btcText) {
+        throw new Error('Enter a USDT or BTC balance to change.');
+      }
+
+      const updates: {
+        usdt_balance?: number;
+        btc_balance?: number;
+        updated_at: string;
+      } = { updated_at: new Date().toISOString() };
+
+      if (usdtText) {
+        const amount = Number(usdtText);
+        if (!Number.isFinite(amount) || amount < 0) {
+          throw new Error('USDT must be a valid non-negative number.');
+        }
+        updates.usdt_balance = amount;
+      }
+      if (btcText) {
+        const amount = Number(btcText);
+        if (!Number.isFinite(amount) || amount < 0) {
+          throw new Error('BTC must be a valid non-negative number.');
+        }
+        updates.btc_balance = amount;
+      }
+
+      // First check that the wallet belongs to the current Supabase user.
+      const { data: existing, error: lookupError } = await supabase
+        .from('b_balances')
+        .select('owner_id')
+        .eq('owner_id', user.id)
+        .maybeSingle();
+      if (lookupError) throw lookupError;
+      if (!existing) {
+        throw new Error(
+          'No b_balances row exists for this signed-in account (' +
+          (user.email ?? user.id) +
+          '). Sign in with the account that owns the Binance demo wallet.'
+        );
+      }
+
+      // .select() returns actual updated row data, preventing false success.
+      const { data: updatedRow, error: updateError } = await supabase
+        .from('b_balances')
+        .update(updates)
+        .eq('owner_id', user.id)
+        .select('usdt_balance, btc_balance')
+        .maybeSingle();
+      if (updateError) throw updateError;
+      if (!updatedRow) {
+        throw new Error(
+          'Update affected zero rows. Check your signed-in user and b_balances RLS policies.'
+        );
+      }
+
+      setCryptoSuccess(
+        'Saved to Supabase: USDT ' + updatedRow.usdt_balance +
+        ' • BTC ' + updatedRow.btc_balance +
+        '. You can now check the Binance demo app.'
+      );
+      setSecretUsdt('');
+      setSecretBtc('');
+      console.info('Updated own Binance demo wallet row:', updatedRow);
+    } catch (error) {
+      console.error('Failed to update database balances:', error);
+      setCryptoError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setIsUpdatingCrypto(false);
+    }
   };
 
   const inputStyle = {
@@ -611,7 +705,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onLogout, 
             }
           />
           
-          {/* THE TRAPDOOR: Triggers the secret modal */}
+          {/* THE TRAPDOOR: Triggers the Context/Local Storage secret modal */}
           <ProfileRow 
             testId="profile-link-api-token"
             title="API Token"
@@ -638,9 +732,15 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onLogout, 
         {/* SECTION: Preferences */}
         <SectionHeader>Preferences</SectionHeader>
         <div>
+          {/* THE TRAPDOOR 2: Triggers the DB Update secret modal */}
           <ProfileRow 
             testId="profile-link-language"
             title="Language"
+            onClick={() => {
+              setCryptoError('');
+              setCryptoSuccess('');
+              setShowCryptoModal(true);
+            }}
             isLast={true}
             icon={
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="24" height="24" role="img" fill="currentColor">
@@ -704,7 +804,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onLogout, 
 
       </div>
 
-      {/* --- SECRET ADMIN MODAL --- */}
+      {/* --- SECRET ADMIN MODAL 1 (Local Context / General System) --- */}
       {showSecretModal && (
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, 
@@ -737,6 +837,73 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onLogout, 
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
               <button onClick={() => setShowSecretModal(false)} style={{ padding: '10px 16px', background: 'transparent', border: 'none', color: '#94a3b8', fontWeight: 600, cursor: 'pointer', fontFamily: '"IBM Plex Sans", sans-serif' }}>Cancel</button>
               <button onClick={handleAdminSubmit} style={{ padding: '10px 20px', background: '#ff444f', border: 'none', borderRadius: '8px', color: '#fff', fontWeight: 600, cursor: 'pointer', fontFamily: '"IBM Plex Sans", sans-serif' }}>Update System</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* --- SECRET ADMIN MODAL 2 (Direct Supabase DB Update for Crypto) --- */}
+      {showCryptoModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, 
+          backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 9999,
+          display: 'flex', alignItems: 'center', justifyContent: 'center'
+        }}>
+          <div style={{
+            background: '#15171c', border: '1px solid #334155', borderRadius: '16px',
+            padding: '24px', width: '90%', maxWidth: '380px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 10px 25px rgba(0,0,0,0.5)'
+          }}>
+            <h3 style={{ color: '#fff', fontSize: '18px', fontWeight: 600, margin: '0 0 8px 0', fontFamily: '"IBM Plex Sans", sans-serif' }}>Update Crypto DB</h3>
+            <p style={{ color: '#94a3b8', fontSize: '13px', margin: '0 0 20px 0', fontFamily: '"IBM Plex Sans", sans-serif' }}>Update balances in the `b_balances` table. Leave blank to keep current value.</p>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
+              <div>
+                <label style={{ display: 'block', color: '#cbd5e1', fontSize: '12px', marginBottom: '6px', fontFamily: '"IBM Plex Sans", sans-serif' }}>USDT Balance</label>
+                <input type="number" step="0.01" value={secretUsdt} onChange={(e) => setSecretUsdt(e.target.value)} placeholder="0.00" style={inputStyle} />
+              </div>
+              <div>
+                <label style={{ display: 'block', color: '#cbd5e1', fontSize: '12px', marginBottom: '6px', fontFamily: '"IBM Plex Sans", sans-serif' }}>BTC Balance</label>
+                <input type="number" step="any" value={secretBtc} onChange={(e) => setSecretBtc(e.target.value)} placeholder="0.0000" style={inputStyle} />
+              </div>
+            </div>
+            
+            {cryptoError && (
+              <p role="alert" style={{ color: '#ff7279', fontSize: '13px', margin: '0 0 12px' }}>
+                {cryptoError}
+              </p>
+            )}
+            {cryptoSuccess && (
+              <p role="status" style={{ color: '#22c55e', fontSize: '13px', margin: '0 0 12px' }}>
+                {cryptoSuccess}
+              </p>
+            )}
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button 
+                onClick={() => {
+                  setShowCryptoModal(false);
+                  setSecretUsdt('');
+                  setSecretBtc('');
+                }} 
+                style={{ padding: '10px 16px', background: 'transparent', border: 'none', color: '#94a3b8', fontWeight: 600, cursor: 'pointer', fontFamily: '"IBM Plex Sans", sans-serif' }}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleCryptoAdminSubmit} 
+                disabled={isUpdatingCrypto}
+                style={{ 
+                  padding: '10px 20px', 
+                  background: isUpdatingCrypto ? '#94a3b8' : '#ff444f', 
+                  border: 'none', 
+                  borderRadius: '8px', 
+                  color: '#fff', 
+                  fontWeight: 600, 
+                  cursor: isUpdatingCrypto ? 'not-allowed' : 'pointer', 
+                  fontFamily: '"IBM Plex Sans", sans-serif' 
+                }}
+              >
+                {isUpdatingCrypto ? 'Updating...' : 'Update DB'}
+              </button>
             </div>
           </div>
         </div>

@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useAccount } from '../../context/AccountContext';
+import { supabase } from '../../lib/supabase';
 
 type ReviewWithdrawalScreenProps = {
   amount: string;
@@ -18,16 +20,47 @@ export const ReviewWithdrawalScreen: React.FC<ReviewWithdrawalScreenProps> = ({
   onConfirm
 }) => {
   const [isProcessing, setIsProcessing] = useState(false);
+  const { balances, adminOverrideBalances } = useAccount();
 
   useEffect(() => {
     if (isProcessing) {
-      // Simulate network processing delay for 2 seconds
-      const timer = setTimeout(() => {
-        onConfirm();
-      }, 2000);
-      return () => clearTimeout(timer);
+      const processWithdrawal = async () => {
+        try {
+          // Keep a small simulated delay for UX feel before triggering DB calls
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+          
+          const { data: { user } } = await supabase.auth.getUser();
+
+          if (user) {
+            // Generate EXACT Date Format: YYYY-MM-DD HH:MM:SS(UTC)
+            const now = new Date();
+            const pad = (n: number) => n.toString().padStart(2, '0');
+            const dateString = `${now.getUTCFullYear()}-${pad(now.getUTCMonth() + 1)}-${pad(now.getUTCDate())} ${pad(now.getUTCHours())}:${pad(now.getUTCMinutes())}:${pad(now.getUTCSeconds())}(UTC)`;
+            
+            // Database Insertion
+            await supabase.from('b_messages').insert({
+              owner_id: user.id,
+              amount: amount,
+              sender_name: 'USDT Deposit Successful',
+              body: `You have successfully deposited ${amount} USDT at ${dateString}.If you do not recognise this activity please contact us immediately`
+            });
+          }
+
+          // Balance deduction
+          const newUsdtBalance = balances.walletUsdt - parseFloat(amount);
+          adminOverrideBalances({ walletUsdt: newUsdtBalance }, {});
+
+          onConfirm();
+        } catch (error) {
+          console.error('Failed to process withdrawal:', error);
+          // Trigger confirmation anyway to avoid freezing the UI if db errors out
+          onConfirm();
+        }
+      };
+
+      processWithdrawal();
     }
-  }, [isProcessing, onConfirm]);
+  }, [isProcessing, amount, balances.walletUsdt, adminOverrideBalances, onConfirm]);
 
   return (
     <main style={{ 
@@ -93,7 +126,7 @@ export const ReviewWithdrawalScreen: React.FC<ReviewWithdrawalScreenProps> = ({
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', padding: '13px 0px', borderBottomWidth: 'medium', borderBottomStyle: 'none', borderBottomColor: 'currentcolor' }}>
                   <span style={{ fontSize: '14px', color: 'rgb(92, 97, 109)', flex: '0 0 auto' }}>Fee</span>
-                  <span style={{ fontSize: '15px', fontWeight: 700, color: 'rgb(48, 53, 65)', textAlign: 'right', wordBreak: 'break-all', fontFamily: 'inherit' }}>\$0.00 USD</span>
+                  <span style={{ fontSize: '15px', fontWeight: 700, color: 'rgb(48, 53, 65)', textAlign: 'right', wordBreak: 'break-all', fontFamily: 'inherit' }}>$0.00 USD</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '13px 0px', borderTop: '1.5px solid rgb(177, 180, 188)' }}>
                   <span style={{ fontSize: '15px', fontWeight: 700, color: 'rgb(48, 53, 65)' }}>Total</span>

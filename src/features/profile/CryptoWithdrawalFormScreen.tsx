@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useAccount } from '../../context/AccountContext';
 
 type CryptoWithdrawalFormScreenProps = {
   networkName?: string;
@@ -13,6 +14,9 @@ export const CryptoWithdrawalFormScreen: React.FC<CryptoWithdrawalFormScreenProp
   onClose,
   onWithdraw
 }) => {
+  // Use AccountContext to get the real balance
+  const { balances } = useAccount();
+
   const [address, setAddress] = useState('');
   const [amount, setAmount] = useState('');
 
@@ -20,7 +24,8 @@ export const CryptoWithdrawalFormScreen: React.FC<CryptoWithdrawalFormScreenProp
   const [isAddressFocused, setIsAddressFocused] = useState(false);
   const [isAmountFocused, setIsAmountFocused] = useState(false);
 
-  const availableBalance = 1750.00;
+  // Replaced hardcoded 1750.00 with the actual USDT wallet balance
+  const availableBalance = balances.walletUsdt;
   const exchangeRate = 0.999625;
   const minAmount = 10.00;
 
@@ -37,7 +42,7 @@ export const CryptoWithdrawalFormScreen: React.FC<CryptoWithdrawalFormScreenProp
   // Safe handler to allow only numbers and a single decimal point
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
-    if (/^\d*\.?\d*\$/.test(val)) {
+    if (/^\d*\.?\d*$/.test(val)) {
       setAmount(val);
     }
   };
@@ -105,7 +110,7 @@ export const CryptoWithdrawalFormScreen: React.FC<CryptoWithdrawalFormScreenProp
             style={{ 
               width: '100%', 
               background: 'rgb(255, 255, 255)', 
-              color: 'rgb(48, 53, 65)',          // <--- CRITICAL FIX: Forces text to be dark grey instead of white
+              color: 'rgb(48, 53, 65)', 
               border: isAddressFocused ? '1px solid rgb(48, 53, 65)' : '1px solid rgb(235, 236, 239)', 
               borderRadius: '10px', 
               padding: '12px 14px', 
@@ -150,7 +155,7 @@ export const CryptoWithdrawalFormScreen: React.FC<CryptoWithdrawalFormScreenProp
               outline: 'none', 
               fontSize: '18px', 
               fontWeight: 700, 
-              color: 'rgb(48, 53, 65)',          // <--- Matches text color
+              color: 'rgb(48, 53, 65)',
               padding: '10px 0px', 
               fontFamily: 'inherit', 
               background: 'transparent',
