@@ -34,6 +34,37 @@ const RESTART_CONDITIONS_ICON_BASE64 =
 // ============================================================================
 // BLOCK DEFINITIONS & CONFIGURATION FOR ZELOS RENDERER
 // ============================================================================
+// Match the compact number fields beside the Ticks dropdown: a single-digit
+// field is approximately 38 x 32 SVG units, rather than a stretched oval.
+// Blockly may expand the width for longer numbers without clipping the value.
+class DerivNumberPillField extends Blockly.FieldNumber {
+  override initView(): void {
+    super.initView();
+    this.getSvgRoot()?.classList.add('derivNumberPill');
+  }
+
+  protected override updateSize_(margin?: number): void {
+    super.updateSize_(margin);
+
+    const extraWidth = Math.max(0, 48 - this.size_.width);
+    const extraHeight = Math.max(0, 32 - this.size_.height);
+    if (!extraWidth && !extraHeight) return;
+
+    this.size_.width += extraWidth;
+    this.size_.height += extraHeight;
+
+    // Center the editable number within the enlarged SVG field, not just the
+    // outline: the text and the pill must move together on Blockly re-renders.
+    if (this.textElement_) {
+      const x = Number(this.textElement_.getAttribute('x') ?? 0);
+      const y = Number(this.textElement_.getAttribute('y') ?? 0);
+      this.textElement_.setAttribute('x', String(x + extraWidth / 2));
+      this.textElement_.setAttribute('y', String(y + extraHeight / 2));
+    }
+    this.positionBorderRect_();
+  }
+}
+
 export const initDerivBlocks = () => {
   delete (Blockly.Blocks as any)['deriv_number_pill'];
   Blockly.Blocks['deriv_number_pill'] = {
@@ -110,56 +141,24 @@ export const initDerivBlocks = () => {
   delete (Blockly.Blocks as any)['trade_step_type'];
   Blockly.Blocks['trade_step_type'] = {
     init: function (this: Blockly.Block) {
-      const categoryDropdown = new Blockly.FieldDropdown(
-        () => [
-          ['Up/Down', 'Up/Down'],
-          ['Touch/No Touch', 'Touch/No Touch'],
-          ['In/Out', 'In/Out'],
-          ['Asians', 'Asians'],
-          ['Digits', 'Digits'],
-          ['Reset Call/Reset Put', 'Reset Call/Reset Put'],
-          ['High/Low Ticks', 'High/Low Ticks'],
-          ['Only Ups/Only Downs', 'Only Ups/Only Downs'],
-          ['Multipliers', 'Multipliers'],
-          ['Accumulators', 'Accumulators'],
-        ],
-        (newCategory: string) => {
-          const subDropdown = this.getField('TRADE_TYPE') as Blockly.FieldDropdown;
-          if (subDropdown) {
-            const options = TRADE_TYPE_MAP[newCategory] || [['Default', 'DEFAULT']];
-            subDropdown.setValue(options[0][1]);
-          }
+      const categoryDropdown = new Blockly.FieldDropdown([
+        ['Up/Down', 'Up/Down'],
+        ['Touch/No Touch', 'Touch/No Touch'],
+        ['In/Out', 'In/Out'],
+        ['Asians', 'Asians'],
+        ['Digits', 'Digits'],
+        ['Reset Call/Reset Put', 'Reset Call/Reset Put'],
+        ['High/Low Ticks', 'High/Low Ticks'],
+        ['Only Ups/Only Downs', 'Only Ups/Only Downs'],
+        ['Multipliers', 'Multipliers'],
+        ['Accumulators', 'Accumulators'],
+      ]);
 
-          const ws = this.workspace;
-          
-          // Update Prediction field visibility
-          const optionsBlock = ws.getAllBlocks(false).find((b) => b.type === 'trade_options_block');
-          if (optionsBlock) {
-            (optionsBlock as any).updatePredictionField?.(newCategory === 'Digits');
-          }
-          
-          // Force Contract Type block to refresh its options
-          const contractBlock = ws.getAllBlocks(false).find((b) => b.type === 'trade_step_contract');
-          if (contractBlock) {
-             (contractBlock as any).updateContractOptions?.(subDropdown ? subDropdown.getValue() : 'RISEFALL');
-          }
-        }
-      );
-
-      const subTypeDropdown = new Blockly.FieldDropdown(
-        () => {
-          const cat = this.getFieldValue('TRADE_CATEGORY') || 'Up/Down';
-          return TRADE_TYPE_MAP[cat] || [['Rise/Fall', 'RISEFALL']];
-        },
-        (newTradeType: string) => {
-          const ws = this.workspace;
-          // Force Contract Type block to refresh its options when Trade Type changes
-          const contractBlock = ws.getAllBlocks(false).find((b) => b.type === 'trade_step_contract');
-          if (contractBlock) {
-             (contractBlock as any).updateContractOptions?.(newTradeType);
-          }
-        }
-      );
+      // Keep the list and the currently displayed label synchronized. A field
+      // validator runs *before* TRADE_CATEGORY actually changes, so changing
+      // another dropdown from that validator can read stale category options.
+      // Handle real Blockly field-change events instead, after the change.
+      const subTypeDropdown = new Blockly.FieldDropdown(TRADE_TYPE_MAP['Up/Down']);
 
       this.appendDummyInput()
         .appendField('Trade Type:')
@@ -170,35 +169,62 @@ export const initDerivBlocks = () => {
       this.setPreviousStatement(true, null);
       this.setNextStatement(true, null);
       this.setColour(DERIV_STEP_FILL);
+
+      this.setOnChange((event) => {
+        if (event.type !== Blockly.Events.BLOCK_CHANGE) return;
+        const change = event as Blockly.Events.BlockChange;
+        if (change.blockId !== this.id || change.element !== 'field') return;
+
+        const ws = this.workspace;
+        if (change.name === 'TRADE_CATEGORY') {
+          const category = this.getFieldValue('TRADE_CATEGORY') || 'Up/Down';
+          const nextOptions = TRADE_TYPE_MAP[category] || TRADE_TYPE_MAP['Up/Down'];
+
+          // setOptions updates the items AND selects their first valid value,
+          // immediately changing the text shown inside the second capsule.
+          subTypeDropdown.setOptions(nextOptions);
+
+          const optionsBlock = ws.getAllBlocks(false).find(
+            (b) => b.type === 'trade_options_block',
+          );
+          (optionsBlock as any)?.updatePredictionField?.(category === 'Digits');
+        }
+
+        if (change.name === 'TRADE_CATEGORY' || change.name === 'TRADE_TYPE') {
+          const contractBlock = ws.getAllBlocks(false).find(
+            (b) => b.type === 'trade_step_contract',
+          );
+          (contractBlock as any)?.updateContractOptions?.(
+            this.getFieldValue('TRADE_TYPE') || 'RISEFALL',
+          );
+        }
+      });
     },
   };
 
   delete (Blockly.Blocks as any)['trade_step_contract'];
   Blockly.Blocks['trade_step_contract'] = {
     init: function (this: any) {
-      
       this.updateContractOptions = (tradeType: string) => {
         const contractField = this.getField('CONTRACT_TYPE') as Blockly.FieldDropdown;
         if (!contractField) return;
-        
+
         let newOptions: [string, string][] = [['Both', 'Both']];
-        
+
         if (tradeType === 'MATCHDIFF') {
-            newOptions = [['Both', 'Both'], ['Matches', 'DIGITMATCH'], ['Differs', 'DIGITDIFF']];
+          newOptions = [['Both', 'Both'], ['Matches', 'DIGITMATCH'], ['Differs', 'DIGITDIFF']];
         } else if (tradeType === 'EVENODD') {
-            newOptions = [['Both', 'Both'], ['Even', 'DIGITEVEN'], ['Odd', 'DIGITODD']];
+          newOptions = [['Both', 'Both'], ['Even', 'DIGITEVEN'], ['Odd', 'DIGITODD']];
         } else if (tradeType === 'OVERUNDER') {
-            newOptions = [['Both', 'Both'], ['Over', 'DIGITOVER'], ['Under', 'DIGITUNDER']];
+          newOptions = [['Both', 'Both'], ['Over', 'DIGITOVER'], ['Under', 'DIGITUNDER']];
         } else if (tradeType === 'RISEFALL') {
-            newOptions = [['Both', 'Both'], ['Rise', 'CALL'], ['Fall', 'PUT']];
+          newOptions = [['Both', 'Both'], ['Rise', 'CALL'], ['Fall', 'PUT']];
         }
 
-        contractField.menuGenerator_ = newOptions;
-        contractField.setValue(newOptions[0][1]);
-        
-        if (this.rendered) {
-            this.render();
-        }
+        // Use Blockly's supported API instead of mutating menuGenerator_: it
+        // refreshes the actual selected option and its visible label together.
+        contractField.setOptions(newOptions);
+        if (this.rendered) this.render();
       };
 
       this.appendDummyInput()
@@ -207,9 +233,9 @@ export const initDerivBlocks = () => {
           new Blockly.FieldDropdown([
             ['Both', 'Both'],
             ['Rise', 'CALL'],
-            ['Fall', 'PUT']
+            ['Fall', 'PUT'],
           ]),
-          'CONTRACT_TYPE'
+          'CONTRACT_TYPE',
         );
       this.setPreviousStatement(true, null);
       this.setNextStatement(true, null);
@@ -265,16 +291,16 @@ export const initDerivBlocks = () => {
           ]),
           'DURATION_UNIT'
         )
-        .appendField(new Blockly.FieldNumber(1, 1), 'DURATION')
+        .appendField(new DerivNumberPillField(1, 1), 'DURATION')
         .appendField('Stake: USD')
-        .appendField(new Blockly.FieldNumber(1, 0.35, undefined, 2), 'STAKE');
+        .appendField(new DerivNumberPillField(1, 0.35, undefined, 2), 'STAKE');
 
       this.updatePredictionField = (show: boolean) => {
         const row = this.getInput('OPTIONS_ROW');
         const hasPred = this.getField('PREDICTION');
         if (show && !hasPred) {
           row.appendField('Prediction:', 'PREDICTION_LABEL');
-          row.appendField(new Blockly.FieldNumber(1, 0, 9, 0), 'PREDICTION');
+          row.appendField(new DerivNumberPillField(1, 0, 9, 0), 'PREDICTION');
         } else if (!show && hasPred) {
           row.removeField('PREDICTION_LABEL');
           row.removeField('PREDICTION');

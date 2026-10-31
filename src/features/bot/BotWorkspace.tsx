@@ -634,7 +634,11 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
 
     const stepContract = ws.newBlock('trade_step_contract');
     stepContract.initSvg();
-    stepContract.setFieldValue('Both', 'CONTRACT_TYPE');
+    // Initialize dependent options from the selected Trade Type (also handled
+    // automatically on subsequent user changes by trade_step_type.onchange).
+    (stepContract as any).updateContractOptions?.(
+      stepType.getFieldValue('TRADE_TYPE') || 'RISEFALL',
+    );
     stepContract.render();
     stepType.nextConnection?.connect(stepContract.previousConnection);
 

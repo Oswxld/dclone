@@ -68,14 +68,22 @@
   ry: 16px !important;
 }
 
-/* 4. Number Input Pill Capsules */
+/* 4. Number Input Fields: compact, softly rounded rectangles like the
+   reference input beside Ticks, NOT elongated oval capsules. Let Blockly
+   control the SVG width/height so the editable area and outline stay aligned. */
 :global(.blocklyEditableText:not(:has(.blocklyCheckbox)) rect.blocklyFieldRect) {
   fill: #ffffff !important;
   stroke: #d6dadf !important;
   stroke-width: 1px !important;
-  height: 30px !important;
   rx: 15px !important;
   ry: 15px !important;
+}
+
+/* Duration, Stake and Prediction are a minimum 38 x 32 SVG units.
+   As the user enters more digits, Blockly can grow the field naturally. */
+:global(.derivNumberPill rect.blocklyFieldRect) {
+  rx: 20px !important;
+  ry: 20px !important;
 }
 
 :global(.blocklyEditableText:not(:has(.blocklyCheckbox)) text.blocklyText) {
