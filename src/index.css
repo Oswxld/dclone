@@ -76,6 +76,13 @@ body {
   flex-direction: column;
   box-sizing: border-box;
 }
+/* Remove the desktop container border on mobile */
+@media screen and (max-width: 600px) {
+  #root {
+    width: 100%;
+    border: none;
+  }
+}
 
 h1,
 h2 {

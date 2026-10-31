@@ -42,3 +42,11 @@ body {
   box-shadow: 0 0 30px rgba(0, 0, 0, 0.4);
   overflow-x: hidden;
 }
+
+/* Full-width application on mobile devices */
+@media screen and (max-width: 600px) {
+  .mobile-viewport {
+    max-width: none;
+    box-shadow: none;
+  }
+}
