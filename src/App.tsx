@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { AccountProvider } from './context/AccountContext';
 import { MobileTopHeader } from './components/layout/MobileTopHeader';
 import { MobileBottomNav } from './components/layout/MobileBottomNav';
@@ -42,69 +42,104 @@ export type AuthState = 'loading' | 'unauthenticated' | 'device_pending' | 'devi
 export const App = () => {
   // --- AUTHENTICATION & GLOBAL USER STATE ---
   const [appState, setAppState] = useState<AuthState>('loading');
-  const [localDeviceId, setLocalDeviceId] = useState('');
+  const [localDeviceId] = useState<string>(() => getDeviceFingerprint());
   const [userProfile, setUserProfile] = useState<{ fullName: string; email: string } | null>(null);
+  // An explicit password login can replace an existing approved device.
+  // Regular session refreshes must never silently take over another device.
+  const loginInProgressRef = useRef(false);
+  const verificationIdRef = useRef(0);
 
   const verifyUserProfile = async (session: Session) => {
-    const email = session.user.email;
-    if (!email) return;
-
-    const deviceId = getDeviceFingerprint();
-    setLocalDeviceId(deviceId);
+    const requestId = ++verificationIdRef.current;
 
     try {
-      let { data: profile, error } = await supabase
+      const { data: profile, error } = await supabase
         .from('profiles')
-        .select('*')
-        .eq('email', email)
-        .single();
+        .select('id, email, full_name, deriv_clone_decide_id_string')
+        .eq('id', session.user.id)
+        .maybeSingle();
 
-      if (!profile && error?.code === 'PGRST116') {
-        const fullName = session.user.user_metadata?.full_name || 'Unknown User';
-        const { data: newProfile } = await supabase
-          .from('profiles')
-          .insert([{ email, full_name: fullName, deriv_clone_decide_id_string: '' }])
-          .select()
-          .single();
-        profile = newProfile;
-      }
+      // A newer login, logout, or verification supersedes this request.
+      if (requestId !== verificationIdRef.current) return;
 
-      if (!profile) return;
-
-      const dbDeviceId = profile.deriv_clone_decide_id_string || '';
-
-      if (dbDeviceId === '') {
-        setAppState('device_pending');
-      } else if (dbDeviceId !== deviceId) {
+      if (error || !profile) {
+        console.error('Unable to verify profile:', error ?? 'Profile not found');
+        setUserProfile(null);
         setAppState('device_rejected');
-      } else {
-        setUserProfile({ fullName: profile.full_name, email: profile.email });
-        setAppState('authenticated');
+        return;
       }
+
+      const storedDeviceId = profile.deriv_clone_decide_id_string;
+
+      // NULL, empty, or whitespace-only IDs require your manual approval.
+      if (typeof storedDeviceId !== 'string' || storedDeviceId.trim() === '') {
+        setUserProfile(null);
+        setAppState('device_pending');
+        return;
+      }
+
+      if (storedDeviceId !== localDeviceId) {
+        setUserProfile(null);
+        setAppState('device_rejected');
+        return;
+      }
+
+      setUserProfile({
+        fullName: profile.full_name || 'Unknown User',
+        email: profile.email || session.user.email || '',
+      });
+      setAppState('authenticated');
     } catch (err) {
+      if (requestId !== verificationIdRef.current) return;
       console.error('Error during profile verification:', err);
+      setUserProfile(null);
+      setAppState('device_rejected');
     }
   };
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        verifyUserProfile(session);
-      } else {
-        setAppState('unauthenticated');
-      }
-    });
+  const checkCurrentSession = async () => {
+    const { data: { session }, error } = await supabase.auth.getSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) {
-        verifyUserProfile(session);
-      } else {
+    if (error || !session) {
+      verificationIdRef.current += 1;
+      setUserProfile(null);
+      setAppState('unauthenticated');
+      if (error) console.error('Session check failed:', error);
+      return;
+    }
+
+    await verifyUserProfile(session);
+  };
+
+  useEffect(() => {
+    // Existing sessions are checked but never overwrite the approved ID.
+    void checkCurrentSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT' || !session) {
+        verificationIdRef.current += 1;
+        loginInProgressRef.current = false;
         setAppState('unauthenticated');
         setUserProfile(null);
+        return;
       }
+
+      // A password login updates the approved device (only if one exists)
+      // before App.tsx verifies the resulting profile.
+      if (loginInProgressRef.current) return;
+
+      // Defer Supabase queries outside the synchronous auth-state callback.
+      setTimeout(() => {
+        if (!loginInProgressRef.current) {
+          void verifyUserProfile(session);
+        }
+      }, 0);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      verificationIdRef.current += 1;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const handleLogout = async () => {
@@ -186,7 +221,15 @@ export const App = () => {
       <LoginScreen 
         authStatus={appState} 
         localDeviceId={localDeviceId}
-        onCheckAgain={() => supabase.auth.refreshSession()}
+        onCheckAgain={() => { void checkCurrentSession(); }}
+        onLoginStart={() => {
+          loginInProgressRef.current = true;
+          verificationIdRef.current += 1;
+        }}
+        onLoginComplete={() => {
+          loginInProgressRef.current = false;
+          void checkCurrentSession();
+        }}
         onLogout={handleLogout}
       />
     );
