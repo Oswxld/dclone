@@ -7,10 +7,19 @@ type LoginScreenProps = {
   authStatus: AuthState;
   localDeviceId: string;
   onCheckAgain: () => void;
+  onLoginStart: () => void;
+  onLoginComplete: () => void;
   onLogout: () => void;
 };
 
-export const LoginScreen: React.FC<LoginScreenProps> = ({ localDeviceId }) => {
+export const LoginScreen: React.FC<LoginScreenProps> = ({
+  authStatus,
+  localDeviceId,
+  onCheckAgain,
+  onLoginStart,
+  onLoginComplete,
+  onLogout,
+}) => {
   // Toggle between Login and Register
   const [isRegister, setIsRegister] = useState(false);
   
@@ -47,44 +56,148 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ localDeviceId }) => {
 
     setIsLoading(true);
 
-    if (isRegister) {
-      const { error } = await supabase.auth.signUp({
-        email: trimmedEmail,
-        password,
-        options: {
-          data: { full_name: fullName.trim() }
+    try {
+      if (isRegister) {
+        const { error } = await supabase.auth.signUp({
+          email: trimmedEmail,
+          password,
+          options: {
+            data: { full_name: fullName.trim() },
+          },
+        });
+
+        if (error) {
+          setErrorMsg(error.message);
+        } else {
+          setSuccessMsg('Registration successful! Please check your email to confirm your address before logging in.');
+          setIsRegister(false);
         }
-      });
-
-      if (error) {
-        setErrorMsg(error.message);
       } else {
-        setSuccessMsg('Registration successful! Please check your email to confirm your address before logging in.');
-        setIsRegister(false); // Switch back to login view
-      }
-    } else {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: trimmedEmail,
-        password
-      });
+        // Mark this explicit login so the auth event won't check an old ID
+        // before we've had a chance to claim an already-approved account.
+        onLoginStart();
+        try {
+          const { data, error } = await supabase.auth.signInWithPassword({
+            email: trimmedEmail,
+            password,
+          });
 
-      if (error) {
-        setErrorMsg(error.message);
-      } else if (data.user) {
-        // OVERWRITE DEVICE ID: Instantly claim the session for this device
-        await supabase
-          .from('profiles')
-          .update({ deriv_clone_decide_id_string: localDeviceId })
-          .eq('email', trimmedEmail);
+          if (error || !data.user) {
+            setErrorMsg(error?.message || 'Unable to log in.');
+            return;
+          }
+
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('deriv_clone_decide_id_string')
+            .eq('id', data.user.id)
+            .maybeSingle();
+
+          if (profileError || !profile) {
+            console.error('Unable to check device approval:', profileError);
+            setErrorMsg('Unable to verify your profile. Please try again.');
+            return;
+          }
+
+          const storedDeviceId = profile.deriv_clone_decide_id_string;
+
+          // Never claim an unapproved account. An empty or NULL ID will
+          // display the manual approval page during the subsequent check.
+          if (typeof storedDeviceId === 'string' && storedDeviceId.trim() !== ''
+              && storedDeviceId !== localDeviceId) {
+            const { data: updated, error: updateError } = await supabase
+              .from('profiles')
+              .update({ deriv_clone_decide_id_string: localDeviceId })
+              .eq('id', data.user.id)
+              // Compare-and-swap: a concurrently cleared ID stays unapproved.
+              .eq('deriv_clone_decide_id_string', storedDeviceId)
+              .select('id')
+              .maybeSingle();
+
+            if (updateError || !updated) {
+              console.error('Unable to switch approved device:', updateError);
+              setErrorMsg('Unable to activate this device. Please try again.');
+              return;
+            }
+          }
+        } finally {
+          // Always check the final database state, not a stale auth event.
+          onLoginComplete();
+        }
       }
+    } catch (err) {
+      console.error('Authentication failed:', err);
+      setErrorMsg('Something went wrong. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
-    
-    setIsLoading(false);
   };
 
   const isFullNameFloating = isFullNameFocused || fullName.length > 0;
   const isEmailFloating = isEmailFocused || email.length > 0;
   const isPasswordFloating = isPasswordFocused || password.length > 0;
+
+  if (authStatus === 'device_pending') {
+    return (
+      <div className={styles.container}>
+        <div className={styles.innerContainer}>
+          <div className={styles.pendingContainer}>
+            <h1 className={styles.pendingTitle}>Device approval required</h1>
+            <p className={styles.pendingDesc}>
+              Send the device ID below to your administrator. They must
+              add it to your account before you can use the app.
+            </p>
+            <div className={styles.idBox}>
+              <span className={styles.idLabel}>Your device ID</span>
+              <div className={styles.idValue}>{localDeviceId}</div>
+            </div>
+            <p className={styles.pendingDesc}>
+              Once your administrator has approved your device, check again.
+            </p>
+            <button type="button" className={styles.submitBtn} onClick={onCheckAgain}>
+              I've been approved
+            </button>
+            <button
+              type="button"
+              className={styles.footerLink}
+              onClick={onLogout}
+              style={{ background: 'none', border: 'none', marginTop: 24, cursor: 'pointer' }}
+            >
+              Log out
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (authStatus === 'device_rejected') {
+    return (
+      <div className={styles.container}>
+        <div className={styles.innerContainer}>
+          <div className={styles.pendingContainer}>
+            <h1 className={styles.pendingTitle}>Device verification unsuccessful</h1>
+            <p className={styles.pendingDesc}>
+              This device is not currently active for your account, or your
+              profile could not be verified. Log out and log in again to
+              activate an already-approved account on this device.
+            </p>
+            <button type="button" className={styles.submitBtn} onClick={onLogout}>
+              Log out and log in again
+            </button>
+            <button
+              type="button"
+              className={styles.footerLink}
+              onClick={onCheckAgain}
+              style={{ background: 'none', border: 'none', marginTop: 24, cursor: 'pointer' }}
+            >
+              Check again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.container}>
