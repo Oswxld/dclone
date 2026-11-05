@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAccount } from '../../context/AccountContext';
+import { formatMoney, formatAmountInput } from '../../utils/formatNumbers';
 
 type CryptoWithdrawalFormScreenProps = {
   networkName?: string;
@@ -41,7 +42,7 @@ export const CryptoWithdrawalFormScreen: React.FC<CryptoWithdrawalFormScreenProp
 
   // Safe handler to allow only numbers and a single decimal point
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
+    const val = e.target.value.replace(/,/g, '');
     if (/^\d*\.?\d*$/.test(val)) {
       setAmount(val);
     }
@@ -92,7 +93,7 @@ export const CryptoWithdrawalFormScreen: React.FC<CryptoWithdrawalFormScreenProp
           Withdraw {coinSymbol} ({networkName})
         </div>
         <div style={{ fontSize: '13.5px', color: 'rgb(92, 97, 109)', marginBottom: '18px' }}>
-          Min: {minAmount.toFixed(2)} {coinSymbol}
+          Min: {formatMoney(minAmount)} {coinSymbol}
         </div>
 
         {/* Address Input */}
@@ -142,7 +143,7 @@ export const CryptoWithdrawalFormScreen: React.FC<CryptoWithdrawalFormScreenProp
             type="text" 
             inputMode="decimal" 
             placeholder="0.00" 
-            value={amount}
+            value={formatAmountInput(amount)}
             onChange={handleAmountChange}
             onFocus={() => setIsAmountFocused(true)}
             onBlur={() => setIsAmountFocused(false)}
@@ -183,7 +184,7 @@ export const CryptoWithdrawalFormScreen: React.FC<CryptoWithdrawalFormScreenProp
 
         {/* Balance */}
         <div style={{ fontSize: '14.5px', color: 'rgb(56, 61, 74)', marginBottom: '18px' }}>
-          Available balance: <b>{availableBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })} {coinSymbol}</b>
+          Available balance: <b>{formatMoney(availableBalance)} {coinSymbol}</b>
         </div>
 
         {/* Breakdowns */}
@@ -196,13 +197,13 @@ export const CryptoWithdrawalFormScreen: React.FC<CryptoWithdrawalFormScreenProp
           <div>
             <div style={{ fontSize: '14px', color: 'rgb(120, 125, 136)' }}>You'll receive</div>
             <div style={{ fontSize: '21px', fontWeight: 800, color: 'rgb(48, 53, 65)', marginTop: '2px' }}>
-              {numAmount.toFixed(2)} {coinSymbol}
+              {formatMoney(numAmount)} {coinSymbol}
             </div>
           </div>
           <div style={{ textAlign: 'right' }}>
             <div style={{ fontSize: '14px', color: 'rgb(120, 125, 136)' }}>Equivalent to</div>
             <div style={{ fontSize: '21px', fontWeight: 800, color: 'rgb(48, 53, 65)', marginTop: '2px' }}>
-              {(numAmount * exchangeRate).toFixed(2)} USD
+              {formatMoney(numAmount * exchangeRate)} USD
             </div>
           </div>
         </div>
