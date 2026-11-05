@@ -774,27 +774,6 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
     <div className={styles.botAppRoot} style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100%' }}>
       <BotHeader onBackToApp={onBack} customBalance={balances.optionsUsd} />
 
-      {stopToastVisible && (
-        <div className={styles.stopToast} role="status">
-          <span className={styles.stopToastMessage}>Bot stopped. Check Reports for contract history</span>
-          <button
-            type="button"
-            className={styles.stopToastReports}
-            onClick={() => {
-              dismissStopToast();
-              setActiveTab('builder');
-              setDrawerTab('transactions');
-              setDrawerOpen(true);
-            }}
-          >
-            Reports
-          </button>
-          <button type="button" aria-label="Dismiss notification" className={styles.stopToastClose} onClick={dismissStopToast}>
-            ×
-          </button>
-        </div>
-      )}
-
       <main style={{ flex: 1, position: 'relative' }}>
         {activeTab === 'builder' && (
           <div className={styles.workspaceWrapper}>
@@ -1152,6 +1131,27 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
 
             {/* Unified Bottom Anchor Panel (Chevron + Run Box) */}
             <div className={styles.bottomPanel}>
+              {stopToastVisible && (
+                      <div className={styles.stopToast} role="status">
+                        <span className={styles.stopToastMessage}>Bot stopped. Check Reports for contract history</span>
+                        <button
+                          type="button"
+                          className={styles.stopToastReports}
+                          onClick={() => {
+                            dismissStopToast();
+                            setActiveTab('builder');
+                            setDrawerTab('transactions');
+                            setDrawerOpen(true);
+                          }}
+                        >
+                          Reports
+                        </button>
+                        <button type="button" aria-label="Dismiss notification" className={styles.stopToastClose} onClick={dismissStopToast}>
+                          ×
+                        </button>
+                      </div>
+                    )}
+
               
               {/* Chevron Row - Only visible when drawer is CLOSED */}
               {!drawerOpen && (
