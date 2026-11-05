@@ -5,6 +5,8 @@ import { BotHeader } from './BotHeader';
 import { BotBottomNav, type BotTab } from './BotBottomNav';
 import { initDerivBlocks, DerivTheme } from './blocklyConfig';
 import { useAccount } from '../../context/AccountContext';
+import { formatMoney, formatCount } from '../../utils/formatNumbers';
+import emptyTransactionsImage from './assets/box.webp';
 
 type BotWorkspaceProps = {
   onBack: (destinationTab?: string) => void;
@@ -126,6 +128,39 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
   const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
   const [drawerTab, setDrawerTab] = useState<'summary' | 'transactions' | 'journal'>('summary');
   const [simPhase, setSimPhase] = useState<'IDLE' | 'BUYING' | 'BOUGHT' | 'WON' | 'LOST'>('IDLE');
+  const [stopToastVisible, setStopToastVisible] = useState(false);
+  const stopToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      if (stopToastTimer.current !== null) clearTimeout(stopToastTimer.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!resetDialogOpen) return;
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setResetDialogOpen(false);
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [resetDialogOpen]);
+
+  const dismissStopToast = () => {
+    if (stopToastTimer.current !== null) clearTimeout(stopToastTimer.current);
+    stopToastTimer.current = null;
+    setStopToastVisible(false);
+  };
+
+  const showStopToast = () => {
+    dismissStopToast();
+    setStopToastVisible(true);
+    stopToastTimer.current = setTimeout(() => {
+      stopToastTimer.current = null;
+      setStopToastVisible(false);
+    }, 1100);
+  };
   
   const [currentDuration, setCurrentDuration] = useState<number>(1);
   const preForcedWinRef = useRef<boolean | null>(null);
@@ -214,10 +249,12 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
     if (activeMode === 'demo') {
       updateOptionsBalance(10000.0, true);
     }
+    setResetDialogOpen(false);
   };
 
   const handleToggleRun = () => {
     if (isSimulating) {
+      showStopToast();
       isSimulatingRef.current = false;
       setIsSimulating(false);
       
@@ -299,6 +336,7 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
       }
 
     } else {
+      dismissStopToast();
       isSimulatingRef.current = true;
       setIsSimulating(true);
       setDrawerOpen(true);
@@ -736,6 +774,27 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
     <div className={styles.botAppRoot} style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100%' }}>
       <BotHeader onBackToApp={onBack} customBalance={balances.optionsUsd} />
 
+      {stopToastVisible && (
+        <div className={styles.stopToast} role="status">
+          <span className={styles.stopToastMessage}>Bot stopped. Check Reports for contract history</span>
+          <button
+            type="button"
+            className={styles.stopToastReports}
+            onClick={() => {
+              dismissStopToast();
+              setActiveTab('builder');
+              setDrawerTab('transactions');
+              setDrawerOpen(true);
+            }}
+          >
+            Reports
+          </button>
+          <button type="button" aria-label="Dismiss notification" className={styles.stopToastClose} onClick={dismissStopToast}>
+            ×
+          </button>
+        </div>
+      )}
+
       <main style={{ flex: 1, position: 'relative' }}>
         {activeTab === 'builder' && (
           <div className={styles.workspaceWrapper}>
@@ -805,7 +864,7 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
                         <path d="M18 15l-6-6-6 6" />
                       </svg>
                     </div>
-                    <button type="button" className={styles.resetBtn} onClick={handleResetMetrics}>
+                    <button type="button" className={styles.resetBtn} onClick={() => setResetDialogOpen(true)}>
                       Reset
                     </button>
                   </div>
@@ -872,22 +931,22 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
                             <div className={styles.dashMetricItem}>
                               <span className={styles.dashMetricLabel}>Total profit/loss:</span>
                               <span className={`${styles.dashMetricVal} ${activeContract.profit >= 0 ? styles.valGreen : styles.valRed}`}>
-                                {activeContract.profit >= 0 ? `+${activeContract.profit.toFixed(2)}` : activeContract.profit.toFixed(2)} {activeContract.profit >= 0 ? '▲' : '▼'}
+                                {activeContract.profit >= 0 ? `+${formatMoney(activeContract.profit)}` : formatMoney(activeContract.profit)} {activeContract.profit >= 0 ? '▲' : '▼'}
                               </span>
                             </div>
                             <div className={styles.dashMetricItem}>
                               <span className={styles.dashMetricLabel}>Contract value:</span>
                               <span className={`${styles.dashMetricVal} ${styles.valGreen}`}>
-                                {activeContract.currentValue.toFixed(2)} ▲
+                                {formatMoney(activeContract.currentValue)} ▲
                               </span>
                             </div>
                             <div className={styles.dashMetricItem}>
                               <span className={styles.dashMetricLabel}>Stake:</span>
-                              <span className={styles.dashMetricValPlain}>{activeContract.stake.toFixed(2)}</span>
+                              <span className={styles.dashMetricValPlain}>{formatMoney(activeContract.stake)}</span>
                             </div>
                             <div className={styles.dashMetricItem}>
                               <span className={styles.dashMetricLabel}>Potential payout:</span>
-                              <span className={styles.dashMetricValPlain}>{activeContract.potentialPayout.toFixed(2)}</span>
+                              <span className={styles.dashMetricValPlain}>{formatMoney(activeContract.potentialPayout)}</span>
                             </div>
                           </div>
                           <div className={styles.resaleText}>Resale not offered</div>
@@ -916,8 +975,8 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
                             </div>
                             <div className={`${styles.closedMassiveAmount} ${simPhase === 'WON' ? styles.valGreen : styles.valRed}`}>
                               {simPhase === 'WON' 
-                                ? `+${(activeContract.potentialPayout - activeContract.stake).toFixed(2)}` 
-                                : `-${activeContract.stake.toFixed(2)}`} USD
+                                ? `+${formatMoney(activeContract.potentialPayout - activeContract.stake)}` 
+                                : `-${formatMoney(activeContract.stake)}`} USD
                             </div>
                           </div>
                         </div>
@@ -927,7 +986,21 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
 
                   {drawerTab === 'transactions' && (
                     <div className={styles.transactionsWrapper}>
-                      <div className={styles.transControls}>
+                      {transactions.length === 0 ? (
+                        <div className={styles.transactionsEmptyBox}>
+                          <img src={emptyTransactionsImage} width={64} height={64} alt="" className={styles.transactionsEmptyIcon} />
+                          <h4 className={styles.transactionsEmptyHeading}>There are no transactions to display</h4>
+                          <div className={styles.transactionsEmptyMessage}>
+                            <span>Here are the possible reasons:</span>
+                            <ul>
+                              <li>The bot is not running</li>
+                              <li>The stats are cleared</li>
+                            </ul>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <div className={styles.transControls}>
                         <button type="button" className={styles.transOutlineBtn}>Download</button>
                         <button type="button" className={styles.transOutlineBtn}>View Detail</button>
                       </div>
@@ -960,7 +1033,7 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
                                     {tx.isPending && isMatchDiff1Tick ? (
                                       <div className={styles.skeletonBar} />
                                     ) : (
-                                      <span>{tx.entrySpot.toFixed(2)}</span>
+                                      <span>{formatMoney(tx.entrySpot)}</span>
                                     )}
                                    </div>
                                   <div className={styles.spotLine}>
@@ -969,19 +1042,19 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
                                     {tx.isPending ? (
                                       <div className={styles.skeletonBar} />
                                     ) : (
-                                      <span>{tx.exitSpot.toFixed(2)}</span>
+                                      <span>{formatMoney(tx.exitSpot)}</span>
                                     )}
                                   </div>
                                 </div>
                               </td>
                               <td style={{ textAlign: 'right' }}>
                                 <div className={tx.isPending ? styles.slideInCell : ''}>
-                                  <div>{tx.stake.toFixed(2)} USD</div>
+                                  <div>{formatMoney(tx.stake)} USD</div>
                                   {tx.isPending ? (
                                     <div className={styles.skeletonBarRight} />
                                   ) : (
                                     <div style={{ color: tx.isWin ? '#00a8a8' : '#ff444f', fontWeight: 400 }}>
-                                      {tx.profit >= 0 ? `+${tx.profit.toFixed(2)}` : tx.profit.toFixed(2)} USD
+                                      {tx.profit >= 0 ? `+${formatMoney(tx.profit)}` : formatMoney(tx.profit)} USD
                                     </div>
                                   )}
                                 </div>
@@ -990,6 +1063,8 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
                           )})}
                         </tbody>
                       </table>
+                        </>
+                      )}
                     </div>
                   )}
 
@@ -1012,10 +1087,10 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
                                 <div><span className={styles.journalInfo}>Bought</span>: Contract purchased (ID: {log.contractId})</div>
                               )}
                               {log.type === 'profit' && (
-                                <div>Profit amount: <span className={styles.journalSuccess}>{log.amount?.toFixed(2)} USD</span></div>
+                                <div>Profit amount: <span className={styles.journalSuccess}>{formatMoney(log.amount ?? 0)} USD</span></div>
                               )}
                               {log.type === 'loss' && (
-                                <div>Loss amount: <span className={styles.journalDanger}>{log.amount?.toFixed(2)} USD</span></div>
+                                <div>Loss amount: <span className={styles.journalDanger}>{formatMoney(log.amount ?? 0)} USD</span></div>
                               )}
                             </div>
                             <div className={styles.journalTimestamp}>
@@ -1037,32 +1112,36 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
                     <div className={styles.metricsGrid}>
                       <div>
                         <div className={styles.metricTitle}>Total stake</div>
-                        <div className={styles.metricAmount}>{totalStake.toFixed(2)} USD</div>
+                        <div className={styles.metricAmount}>{formatMoney(totalStake)} USD</div>
                       </div>
                       <div>
                         <div className={styles.metricTitle}>Total payout</div>
-                        <div className={styles.metricAmount}>{totalPayout.toFixed(2)} USD</div>
+                        <div className={styles.metricAmount}>{formatMoney(totalPayout)} USD</div>
                       </div>
                       <div>
                         <div className={styles.metricTitle}>No. of runs</div>
-                        <div className={styles.metricAmount}>{numberOfRuns}</div>
+                        <div className={styles.metricAmount}>{formatCount(numberOfRuns)}</div>
                       </div>
                       <div>
                         <div className={styles.metricTitle}>Contracts lost</div>
-                        <div className={styles.metricAmount}>{contractsLost}</div>
+                        <div className={styles.metricAmount}>{formatCount(contractsLost)}</div>
                       </div>
                       <div>
                         <div className={styles.metricTitle}>Contracts won</div>
-                        <div className={styles.metricAmount}>{contractsWon}</div>
+                        <div className={styles.metricAmount}>{formatCount(contractsWon)}</div>
                       </div>
                       <div>
                         <div className={styles.metricTitle}>Total profit/loss</div>
                         <div
                           className={`${styles.metricAmount} ${
-                            totalProfitLoss >= 0 ? styles.metricAmountPositive : styles.metricAmountNegative
+                            numberOfRuns === 0
+                              ? styles.metricAmountNeutral
+                              : totalProfitLoss >= 0
+                                ? styles.metricAmountPositive
+                                : styles.metricAmountNegative
                           }`}
                         >
-                          {totalProfitLoss >= 0 ? `+${totalProfitLoss.toFixed(2)}` : totalProfitLoss.toFixed(2)} USD
+                          {numberOfRuns === 0 ? formatMoney(0) : totalProfitLoss >= 0 ? `+${formatMoney(totalProfitLoss)}` : formatMoney(totalProfitLoss)} USD
                         </div>
                       </div>
                     </div>
@@ -1231,6 +1310,28 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
           <div style={{ padding: 20, textAlign: 'center', color: '#6e7481' }}>Menu View</div>
         )}
       </main>
+
+      {resetDialogOpen && (
+        <div className={styles.resetDialogBackdrop} onMouseDown={(e) => { if (e.target === e.currentTarget) setResetDialogOpen(false); }}>
+          <section className={styles.resetDialog} role="dialog" aria-modal="true" aria-labelledby="reset-dialog-title" aria-describedby="reset-dialog-description">
+            <div className={styles.resetDialogHeader}>
+              <h2 id="reset-dialog-title">Are you sure?</h2>
+              <button type="button" className={styles.resetDialogClose} aria-label="Close" onClick={() => setResetDialogOpen(false)}>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="20" height="20" role="img" aria-hidden="true" fill="currentColor">
+                  <path d="M3.854 3.146 8 7.293l4.146-4.147a.5.5 0 0 1 .708.708L8.707 8l4.147 4.146a.5.5 0 0 1-.708.708L8 8.707l-4.146 4.147a.5.5 0 0 1-.708-.708L7.293 8 3.146 3.854a.5.5 0 1 1 .708-.708" />
+                </svg>
+              </button>
+            </div>
+            <p id="reset-dialog-description" className={styles.resetDialogContent}>
+              This will clear all data in the summary, transactions, and journal panels. All counters will be reset to zero.
+            </p>
+            <div className={styles.resetDialogFooter}>
+              <button type="button" className={styles.resetDialogCancel} autoFocus onClick={() => setResetDialogOpen(false)}>Cancel</button>
+              <button type="button" className={styles.resetDialogOk} onClick={handleResetMetrics}>Ok</button>
+            </div>
+          </section>
+        </div>
+      )}
 
       {/* Navigate out of BotWorkspace to the exact tab pressed */}
       <BotBottomNav 
