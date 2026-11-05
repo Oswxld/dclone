@@ -56,7 +56,7 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const optionsVal = savedOptions ? parseFloat(savedOptions) : DEFAULT_REAL_OPTIONS;
     const cfdsVal = savedCfds ? parseFloat(savedCfds) : 10000.0;
     const walletVal = savedWallet ? parseFloat(savedWallet) : 1250.0;
-    const p2pVal = savedP2p ? parseFloat(savedP2p) : 500.0;
+    const p2pVal = savedP2p ? parseFloat(savedP2p) : 0.0;
     
     return {
       currency: 'USD',
