@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAccount } from '../../context/AccountContext';
 import { supabase } from '../../lib/supabase';
+import { formatMoney } from '../../utils/formatNumbers';
 
 type ReviewWithdrawalScreenProps = {
   amount: string;
@@ -110,7 +111,7 @@ export const ReviewWithdrawalScreen: React.FC<ReviewWithdrawalScreenProps> = ({
               <div style={{ background: 'rgb(246, 247, 248)', borderRadius: '14px', padding: '6px 18px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', padding: '13px 0px' }}>
                   <span style={{ fontSize: '14px', color: 'rgb(92, 97, 109)', flex: '0 0 auto' }}>Withdrawal Amount</span>
-                  <span style={{ fontSize: '15px', fontWeight: 700, color: 'rgb(48, 53, 65)', textAlign: 'right', wordBreak: 'break-all', fontFamily: 'inherit' }}>{amount} {coinSymbol}</span>
+                  <span style={{ fontSize: '15px', fontWeight: 700, color: 'rgb(48, 53, 65)', textAlign: 'right', wordBreak: 'break-all', fontFamily: 'inherit' }}>{formatMoney(amount)} {coinSymbol}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', padding: '13px 0px' }}>
                   <span style={{ fontSize: '14px', color: 'rgb(92, 97, 109)', flex: '0 0 auto' }}>Withdrawal Method</span>
@@ -130,7 +131,7 @@ export const ReviewWithdrawalScreen: React.FC<ReviewWithdrawalScreenProps> = ({
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '13px 0px', borderTop: '1.5px solid rgb(177, 180, 188)' }}>
                   <span style={{ fontSize: '15px', fontWeight: 700, color: 'rgb(48, 53, 65)' }}>Total</span>
-                  <span style={{ fontSize: '17px', fontWeight: 700, color: 'rgb(48, 53, 65)' }}>{amount} {coinSymbol}</span>
+                  <span style={{ fontSize: '17px', fontWeight: 700, color: 'rgb(48, 53, 65)' }}>{formatMoney(amount)} {coinSymbol}</span>
                 </div>
               </div>
 
