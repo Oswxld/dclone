@@ -1198,7 +1198,8 @@
 .stopToast {
   position: absolute;
   z-index: 2000;
-  top: 8px;
+  /* Anchored to the same bottom panel as the Run/Stop control. */
+  bottom: 19px;
   left: 5px;
   max-width: calc(100% - 10px);
   display: flex;
