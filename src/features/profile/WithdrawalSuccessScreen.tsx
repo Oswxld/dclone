@@ -1,5 +1,6 @@
 import React from 'react';
 import moneyImg from './money/money.webp';
+import { formatMoney } from '../../utils/formatNumbers';
 
 type WithdrawalSuccessScreenProps = {
   amount: string;
@@ -57,7 +58,7 @@ export const WithdrawalSuccessScreen: React.FC<WithdrawalSuccessScreenProps> = (
             <img src={moneyImg} alt="Success" style={{ width: '100%', display: 'block' }} />
           </div>
           <div style={{ fontSize: '27px', fontWeight: 800, color: 'rgb(48, 53, 65)', marginTop: '18px' }}>
-            -{amount} {coinSymbol}
+            -{formatMoney(amount)} {coinSymbol}
           </div>
           <div style={{ fontSize: '22px', fontWeight: 800, color: 'rgb(48, 53, 65)' }}>
             Withdrawal Initiated
