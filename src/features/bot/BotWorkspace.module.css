@@ -1193,3 +1193,167 @@
 :global(tspan[style*="fill"]) {
   fill: #111827 !important;
 }
+/* Stop notice: a short, sharp left-to-right appearance, no fade-out. */
+.botAppRoot { position: relative; }
+.stopToast {
+  position: absolute;
+  z-index: 2000;
+  top: 8px;
+  left: 5px;
+  max-width: calc(100% - 10px);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-sizing: border-box;
+  padding: 9px 10px;
+  border-radius: 5px;
+  background: #090909;
+  color: #fff;
+  box-shadow: 0 2px 7px rgba(0, 0, 0, 0.23);
+  animation: stopNoticeArrive 120ms steps(2, end) both;
+}
+.stopToastMessage {
+  font-size: 10px;
+  line-height: 16px;
+  font-weight: 600;
+  min-width: 0;
+}
+.stopToastReports, .stopToastClose {
+  flex-shrink: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+}
+.stopToastReports {
+  text-decoration: underline;
+  font-size: 10px;
+  font-weight: 700;
+}
+.stopToastClose {
+  font-size: 20px;
+  line-height: 16px;
+  margin-left: 2px;
+}
+@keyframes stopNoticeArrive {
+  from { transform: translateX(calc(-100% - 15px)); }
+  to { transform: translateX(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stopToast { animation: none; }
+}
+
+/* Confirmation modal covers and dims the entire bot view. */
+.resetDialogBackdrop {
+  position: absolute;
+  z-index: 3000;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.5);
+}
+.resetDialog {
+  box-sizing: border-box;
+  width: min(360px, 100%);
+  padding: 20px;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  color: #333;
+}
+.resetDialogHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.resetDialogHeader h2 {
+  margin: 0;
+  color: #333;
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: 700;
+}
+.resetDialogClose {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  background: transparent;
+  color: #555;
+  cursor: pointer;
+}
+.resetDialogContent {
+  margin: 18px 0 22px;
+  color: #555;
+  font-size: 12px;
+  line-height: 1.43;
+}
+.resetDialogFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.resetDialogCancel, .resetDialogOk {
+  min-width: 90px;
+  padding: 9px 16px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.resetDialogCancel {
+  background: #fff;
+  color: #333;
+  border: 1px solid #d6dadf;
+}
+.resetDialogOk {
+  background: #ff444f;
+  color: #fff;
+  border: 1px solid #ff444f;
+}
+
+/* Transaction list shows this state until its first trade. */
+.transactionsEmptyBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 250px;
+  padding: 28px 12px;
+  color: #6e7481;
+  text-align: center;
+}
+.transactionsEmptyIcon {
+  display: block;
+  object-fit: contain;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 18px;
+}
+.transactionsEmptyHeading {
+  margin: 0 0 18px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: #6e7481;
+}
+.transactionsEmptyMessage {
+  font-size: 11px;
+  line-height: 1.7;
+  color: #6e7481;
+  text-align: left;
+}
+.transactionsEmptyMessage ul {
+  margin: 7px 0 0;
+  padding-left: 18px;
+}
+.transactionsEmptyMessage li {
+  margin: 2px 0;
+}
+.metricAmountNeutral { color: rgb(51, 51, 51); }
