@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import styles from './TransferScreen.module.css';
 import { useAccount, type AccountKey } from '../../context/AccountContext';
+import { formatMoney, formatAmountInput } from '../../utils/formatNumbers';
 
 // Import the native SVGs from the Icons file you created in the assets folder
 import { UsdtTronIcon, UsdtEthereumIcon, UsdIcon, P2PIcon } from '../../assets/Icons';
@@ -92,7 +93,7 @@ export const TransferScreen = ({ onClose, onNavigateToOptions }: TransferScreenP
     const ok = transferFunds ? transferFunds(fromKey, toKey, numAmount) : true;
     if (ok) {
       setTransferredSummary({
-        amount: numAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+        amount: formatMoney(numAmount),
         toName: toAccount?.name || 'Options',
       });
       setIsReviewOpen(false);
@@ -131,7 +132,7 @@ export const TransferScreen = ({ onClose, onNavigateToOptions }: TransferScreenP
               <div className={styles.accountTextCol}>
                 <span className={styles.accountName}>{fromAccount.name}</span>
                 <span className={styles.accountSubBal}>
-                  {(balances?.[fromKey] ?? 0).toFixed(2)} {fromAccount.currency}
+                  {formatMoney(balances?.[fromKey] ?? 0)} {fromAccount.currency}
                 </span>
               </div>
             </div>
@@ -155,7 +156,7 @@ export const TransferScreen = ({ onClose, onNavigateToOptions }: TransferScreenP
                 <div className={styles.accountTextCol}>
                   <span className={styles.accountName}>{toAccount.name}</span>
                   <span className={styles.accountSubBal}>
-                    {(balances?.[toKey!] ?? 0).toFixed(2)} {toAccount.currency}
+                    {formatMoney(balances?.[toKey!] ?? 0)} {toAccount.currency}
                   </span>
                 </div>
               </div>
@@ -184,16 +185,20 @@ export const TransferScreen = ({ onClose, onNavigateToOptions }: TransferScreenP
         <div className={styles.amountBox}>
           <input
             ref={inputRef}
-            type="number"
+            type="text"
+            inputMode="decimal"
             placeholder="Amount"
             className={styles.amountInput}
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
+            value={formatAmountInput(amount)}
+            onChange={(e) => {
+              const entered = e.target.value.replace(/,/g, '');
+              if (/^\d*(?:\.\d*)?$/.test(entered)) setAmount(entered);
+            }}
           />
           <span className={styles.currencyUnit}>USD</span>
         </div>
         <p className={styles.availableLabel}>
-          Available: {availableBalance.toFixed(2)} USD
+          Available: {formatMoney(availableBalance)} USD
         </p>
       </div>
 
@@ -262,7 +267,7 @@ export const TransferScreen = ({ onClose, onNavigateToOptions }: TransferScreenP
                               <div className={styles.accountTextCol}>
                                   <span className={styles.accountName}>{opt.name}</span>
                                   <span className={styles.accountSubBal}>
-                                  {(balances?.[opt.key] ?? 0).toFixed(2)} {opt.currency}
+                                  {formatMoney(balances?.[opt.key] ?? 0)} {opt.currency}
                                   </span>
                               </div>
                             </div>
@@ -304,12 +309,12 @@ export const TransferScreen = ({ onClose, onNavigateToOptions }: TransferScreenP
 
             <div className={styles.reviewRow}>
               <span className={styles.reviewLabel}>Transfer amount</span>
-              <span className={styles.reviewValueText}>{numAmount.toFixed(2)} USD</span>
+              <span className={styles.reviewValueText}>{formatMoney(numAmount)} USD</span>
             </div>
 
             <div className={styles.reviewRow}>
               <span className={styles.reviewLabel}>You'll receive</span>
-              <span className={styles.reviewValueText}>{numAmount.toFixed(2)} USD</span>
+              <span className={styles.reviewValueText}>{formatMoney(numAmount)} USD</span>
             </div>
 
             <button type="button" className={styles.confirmTransferBtn} onClick={handleExecuteTransfer}>
