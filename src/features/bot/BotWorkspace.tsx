@@ -1315,7 +1315,7 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
         <div className={styles.resetDialogBackdrop} onMouseDown={(e) => { if (e.target === e.currentTarget) setResetDialogOpen(false); }}>
           <section className={styles.resetDialog} role="dialog" aria-modal="true" aria-labelledby="reset-dialog-title" aria-describedby="reset-dialog-description">
             <div className={styles.resetDialogHeader}>
-              <h2 id="reset-dialog-title">Are you sure?</h2>
+              <h1 id="reset-dialog-title">Are you sure?</h1>
               <button type="button" className={styles.resetDialogClose} aria-label="Close" onClick={() => setResetDialogOpen(false)}>
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="20" height="20" role="img" aria-hidden="true" fill="currentColor">
                   <path d="M3.854 3.146 8 7.293l4.146-4.147a.5.5 0 0 1 .708.708L8.707 8l4.147 4.146a.5.5 0 0 1-.708.708L8 8.707l-4.146 4.147a.5.5 0 0 1-.708-.708L7.293 8 3.146 3.854a.5.5 0 1 1 .708-.708" />
