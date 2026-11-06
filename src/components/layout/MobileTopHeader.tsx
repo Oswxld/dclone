@@ -104,6 +104,7 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenWithdraw, on
     realUsdt: realBalances.walletUsdt,
     realOptions: realBalances.optionsUsd,
     realCfds: realBalances.cfdsUsd,
+    realP2p: realBalances.p2pUsd,
     demoOptions: demoBalances.optionsUsd,
     demoCfds: demoBalances.cfdsUsd,
     // Add UI states to form
@@ -122,6 +123,7 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenWithdraw, on
         realUsdt: realBalances.walletUsdt,
         realOptions: realBalances.optionsUsd,
         realCfds: realBalances.cfdsUsd,
+        realP2p: realBalances.p2pUsd,
         demoOptions: demoBalances.optionsUsd,
         demoCfds: demoBalances.cfdsUsd,
         unreadCount: unreadCount,
@@ -166,6 +168,7 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenWithdraw, on
         walletUsdt: adminForm.realUsdt,
         optionsUsd: adminForm.realOptions,
         cfdsUsd: adminForm.realCfds,
+        p2pUsd: adminForm.realP2p,
       },
       {
         optionsUsd: adminForm.demoOptions,
@@ -697,6 +700,21 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenWithdraw, on
                   className={styles.adminNumInput} 
                   value={adminForm.realCfds}
                   onChange={(e) => setAdminForm({...adminForm, realCfds: Number(e.target.value)})}
+                />
+              </div>
+
+              <div className={styles.adminInputRow}>
+                <div className={styles.adminInputLabelGroup}>
+                  <span className={styles.adminWalletName}>Deriv P2P (USD)</span>
+                  <span className={styles.adminModeReal}>Real</span>
+                </div>
+                <input
+                  type="number"
+                  min="0"
+                  step="any"
+                  className={styles.adminNumInput}
+                  value={adminForm.realP2p}
+                  onChange={(e) => setAdminForm({...adminForm, realP2p: Number(e.target.value)})}
                 />
               </div>
 
