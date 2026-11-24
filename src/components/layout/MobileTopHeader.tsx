@@ -27,8 +27,6 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenWithdraw, on
     adminOverrideBalances,
     confirmBalanceChanges,
     refreshBalances,
-    syncError,
-    pendingCount,
     winAccuracy,
     setWinAccuracy
   } = useAccount();
@@ -311,8 +309,8 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenWithdraw, on
                 </button>
               </div>
               {!isRefreshing && (
-                <span className={styles.timestamp} role="status" title={syncError || undefined} style={{ color: 'rgba(255,255,255,0.72)' }}>
-                  {syncError ? `Sync pending (${pendingCount})` : localTimestamp || `Updated ${balances.lastUpdated.toLowerCase()}`}
+                <span className={styles.timestamp} role="status" style={{ color: 'rgba(255,255,255,0.72)' }}>
+                  {localTimestamp || `Updated ${balances.lastUpdated.toLowerCase()}`}
                 </span>
               )}
               {refreshError && <span role="alert" style={{ color: '#ff9090', fontSize: 12 }}>{refreshError}</span>}
@@ -480,8 +478,8 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenWithdraw, on
               </button>
             </div>
             {!isRefreshing && (
-              <span className={styles.timestamp} role="status" title={syncError || undefined}>
-                {syncError ? `Sync pending (${pendingCount})` : localTimestamp || `Updated ${balances.lastUpdated.toLowerCase()}`}
+              <span className={styles.timestamp} role="status">
+                {localTimestamp || `Updated ${balances.lastUpdated.toLowerCase()}`}
               </span>
             )}
             {refreshError && <span role="alert" style={{ color: '#c92835', fontSize: 12 }}>{refreshError}</span>}

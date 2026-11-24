@@ -44,7 +44,6 @@ export const App = () => {
   const [appState, setAppState] = useState<AuthState>('loading');
   const [localDeviceId] = useState<string>(() => getDeviceFingerprint());
   const [userProfile, setUserProfile] = useState<{ fullName: string; email: string } | null>(null);
-  const [verifiedUserId, setVerifiedUserId] = useState<string | null>(null);
   // An explicit password login can replace an existing approved device.
   // Regular session refreshes must never silently take over another device.
   const loginInProgressRef = useRef(false);
@@ -66,7 +65,6 @@ export const App = () => {
       if (error || !profile) {
         console.error('Unable to verify profile:', error ?? 'Profile not found');
         setUserProfile(null);
-        setVerifiedUserId(null);
         setAppState('device_rejected');
         return;
       }
@@ -90,7 +88,6 @@ export const App = () => {
         fullName: profile.full_name || 'Unknown User',
         email: profile.email || session.user.email || '',
       });
-      setVerifiedUserId(session.user.id);
       setAppState('authenticated');
     } catch (err) {
       if (requestId !== verificationIdRef.current) return;
@@ -219,7 +216,7 @@ export const App = () => {
     return <AppLoader />;
   }
 
-  if (appState !== 'authenticated' || !verifiedUserId) {
+  if (appState !== 'authenticated') {
     return (
       <LoginScreen 
         authStatus={appState} 
@@ -239,7 +236,7 @@ export const App = () => {
   }
 
   return (
-    <AccountProvider key={verifiedUserId} userId={verifiedUserId}>
+    <AccountProvider>
       <div className="mobile-viewport">
         {isBotLoading && <BotLoader onComplete={handleBotLoaded} />}
 
@@ -306,9 +303,6 @@ export const App = () => {
               setIsReviewOpen(true);
             }}
           />
-
-
-          
         ) : isPasskeyVerifying ? ( 
           <PasskeyVerificationScreen 
             onBack={() => {
@@ -340,7 +334,7 @@ export const App = () => {
             <MobileTopHeader
               currentTab={currentTab}
               onOpenTransfer={() => setIsTransferOpen(true)}
-              onOpenWithdraw={() => window.alert('Paper trading: simulated funds cannot be withdrawn.')}
+              onOpenWithdraw={() => setIsWithdrawOpen(true)}
               onOpenProfile={() => setIsProfileOpen(true)}
               userFullName={userProfile?.fullName}
             />
