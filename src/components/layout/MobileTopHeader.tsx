@@ -221,7 +221,7 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenWithdraw, on
   // --- NEW CRYPTO HEADER RENDERING ---
   if (currentTab === 'crypto') {
     return (
-      <header style={{ position: 'sticky', top: 0, zIndex: 10, marginBottom: '24px', paddingTop: '0px',backgroundColor: 'rgb(0, 0, 0,0)' }}>
+      <header style={{ position: 'sticky', top: 0, zIndex: 10, marginBottom: '24px', paddingTop: '0px', backgroundColor: 'rgb(0, 0, 0,0)' }}>
         <div style={{ backgroundColor: 'rgb(20, 23, 31)', padding: '12px 24px 32px 24px', borderRadius: '0 0 24px 24px', color: 'white' }}>
           
           {/* Top Bar for Crypto (Ask Amy, Eye, Bell) */}
@@ -374,14 +374,14 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenWithdraw, on
                   className={`${styles.toggleBtn} ${activeMode === 'real' ? styles.toggleBtnActive : ''}`}
                   onClick={() => setActiveMode('real')}
                 >
-                  Paper real
+                  Real
                 </button>
                 <button
                   type="button"
                   className={`${styles.toggleBtn} ${activeMode === 'demo' ? styles.toggleBtnActive : ''}`}
                   onClick={() => setActiveMode('demo')}
                 >
-                  Paper demo
+                  Demo
                 </button>
               </div>
             ) : (
@@ -446,10 +446,10 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenWithdraw, on
           <div className={styles.balanceTextBlock}>
             <span className={styles.totalLabel}>
               {currentTab === 'home'
-                ? 'Simulated total value'
+                ? 'Total value'
                 : currentTab === 'portfolio'
-                ? 'Simulated total value'
-                : 'Simulated trading value'}
+                ? 'Est. total value'
+                : 'Total trading value'}
             </span>
             <div className={styles.balanceAmountRow}>
               {isRefreshing ? (

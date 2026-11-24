@@ -60,7 +60,7 @@ export const BotHeader = ({ onBackToApp, customBalance }: BotHeaderProps) => {
               style={{ cursor: 'pointer' }}
             >
               <span className={styles.accountTypeLabel} style={{ color: activeMode === 'demo' ? '#ff9900' : '#00a8a8' }}>
-                {activeMode === 'demo' ? 'Simulated demo' : 'Simulated real'}
+                {activeMode === 'demo' ? 'Demo Account' : 'Real Account'}
               </span>
               <svg
                 width="12"
@@ -85,7 +85,7 @@ export const BotHeader = ({ onBackToApp, customBalance }: BotHeaderProps) => {
         {/* Dynamic Action Button */}
         {activeMode === 'demo' ? (
           <button type="button" className={styles.tryRealBtn} onClick={() => setActiveMode('real')}>
-            Simulated real
+            Try real
           </button>
         ) : (
           <button type="button" className={styles.tryRealBtn} style={{ backgroundColor: '#ff444f', color: '#ffffff', border: 'none' }}>
@@ -117,7 +117,7 @@ export const BotHeader = ({ onBackToApp, customBalance }: BotHeaderProps) => {
                 >
                   <div className={`${styles.accDropdownAccount} ${activeMode === 'real' ? styles.accDropdownAccountSelected : ''}`}>
                     <div className={`${styles.accDropdownAccountName} ${styles.accDropdownAccountNameReal}`}>
-                      Simulated real
+                      Real Account
                     </div>
                     <div className={styles.accDropdownAccountBalance}>
                       {activeMode === 'real' ? displayBal : inactiveRealBal} USD
@@ -132,7 +132,7 @@ export const BotHeader = ({ onBackToApp, customBalance }: BotHeaderProps) => {
                 >
                   <div className={`${styles.accDropdownAccount} ${activeMode === 'demo' ? styles.accDropdownAccountSelected : ''}`}>
                     <div className={`${styles.accDropdownAccountName} ${styles.accDropdownAccountNameDemo}`}>
-                      Simulated demo
+                      Demo Account
                     </div>
                     <div className={styles.accDropdownAccountBalance}>
                       {activeMode === 'demo' ? displayBal : inactiveDemoBal} USD
