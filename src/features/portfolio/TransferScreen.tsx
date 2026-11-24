@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import styles from './TransferScreen.module.css';
-import { useAccount, type AccountKey } from '../../context/AccountContext';
+import { useAccount, type AccountKey, type BalanceSyncTargets } from '../../context/AccountContext';
 import { formatMoney, formatAmountInput } from '../../utils/formatNumbers';
 
 // Import the native SVGs from the Icons file you created in the assets folder
@@ -35,7 +35,7 @@ type TransferScreenProps = {
 };
 
 export const TransferScreen = ({ onClose, onNavigateToOptions }: TransferScreenProps) => {
-  const { balances, transferFunds } = useAccount();
+  const { balances, queueTransferFunds, confirmBalanceChanges } = useAccount();
 
   // Sensible default keys
   const [fromKey, setFromKey] = useState<AccountKey>('walletUsd');
@@ -45,6 +45,11 @@ export const TransferScreen = ({ onClose, onNavigateToOptions }: TransferScreenP
   const [searchQuery, setSearchQuery] = useState('');
   const [isReviewOpen, setIsReviewOpen] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [isTransferring, setIsTransferring] = useState(false);
+  const [hasPendingTransfer, setHasPendingTransfer] = useState(false);
+  const [transferError, setTransferError] = useState<string | null>(null);
+  const pendingTransferRef = useRef<{ targets: BalanceSyncTargets; amount: string; toName: string } | null>(null);
+  const transferringRef = useRef(false);
   const [transferredSummary, setTransferredSummary] = useState({ amount: '0.00', toName: '' });
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -88,16 +93,40 @@ export const TransferScreen = ({ onClose, onNavigateToOptions }: TransferScreenP
     setIsReviewOpen(true);
   };
 
-  const handleExecuteTransfer = () => {
-    if (!toKey) return;
-    const ok = transferFunds ? transferFunds(fromKey, toKey, numAmount) : true;
-    if (ok) {
-      setTransferredSummary({
-        amount: formatMoney(numAmount),
-        toName: toAccount?.name || 'Options',
-      });
+  const handleExecuteTransfer = async () => {
+    if (!toKey || transferringRef.current) return;
+    transferringRef.current = true;
+    setIsTransferring(true);
+    setTransferError(null);
+    try {
+      if (!pendingTransferRef.current) {
+        const targets = queueTransferFunds(fromKey, toKey, numAmount);
+        pendingTransferRef.current = {
+          targets,
+          amount: formatMoney(numAmount),
+          toName: toAccount?.name || 'Options',
+        };
+        setHasPendingTransfer(true);
+      }
+      // The same locally saved transfer is retried after a timeout; no second
+      // debit is queued and the success screen waits for database confirmation.
+      const pending = pendingTransferRef.current;
+      await confirmBalanceChanges(pending.targets);
+      setTransferredSummary({ amount: pending.amount, toName: pending.toName });
+      pendingTransferRef.current = null;
+      setHasPendingTransfer(false);
       setIsReviewOpen(false);
       setIsSuccess(true);
+    } catch (error) {
+      setTransferError(
+        (error instanceof Error ? error.message : 'Could not confirm transfer') +
+        (pendingTransferRef.current
+          ? '. Transfer is queued locally; retry confirmation, do not send another transfer.'
+          : ''),
+      );
+    } finally {
+      transferringRef.current = false;
+      setIsTransferring(false);
     }
   };
 
@@ -112,7 +141,7 @@ export const TransferScreen = ({ onClose, onNavigateToOptions }: TransferScreenP
     <div className={styles.transferContainer}>
       {/* 1. Header Bar */}
       <div className={styles.topBar}>
-        <button type="button" className={styles.backBtn} onClick={onClose} aria-label="Back">
+        <button type="button" className={styles.backBtn} onClick={onClose} disabled={isTransferring || hasPendingTransfer} aria-label="Back">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#15171c" strokeWidth="2.5">
             <path d="M19 12H5M12 19l-7-7 7-7" />
           </svg>
@@ -284,7 +313,7 @@ export const TransferScreen = ({ onClose, onNavigateToOptions }: TransferScreenP
 
       {/* Review and Confirm Bottom Sheet */}
       {isReviewOpen && (
-        <div className={styles.modalBackdrop} onClick={() => setIsReviewOpen(false)}>
+        <div className={styles.modalBackdrop} onClick={() => { if (!isTransferring && !hasPendingTransfer) setIsReviewOpen(false); }}>
           <div className={styles.sheetContent} onClick={(e) => e.stopPropagation()}>
             <div className={styles.sheetHandle} />
             <h2 className={styles.reviewSheetHeader}>Review and confirm</h2>
@@ -317,8 +346,9 @@ export const TransferScreen = ({ onClose, onNavigateToOptions }: TransferScreenP
               <span className={styles.reviewValueText}>{formatMoney(numAmount)} USD</span>
             </div>
 
-            <button type="button" className={styles.confirmTransferBtn} onClick={handleExecuteTransfer}>
-              Confirm
+            {transferError && <p role="alert" style={{ color: '#d53143', fontSize: 12, marginBottom: 10 }}>{transferError}</p>}
+            <button type="button" className={styles.confirmTransferBtn} disabled={isTransferring} onClick={handleExecuteTransfer}>
+              {isTransferring ? 'Confirming transfer…' : hasPendingTransfer ? 'Retry confirmation' : 'Confirm'}
             </button>
           </div>
         </div>
