@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import styles from './BotLoader.module.css';
+import { AppLoader } from '../../components/layout/AppLoader';
 
 type BotLoaderProps = {
   onComplete: () => void;
@@ -17,19 +17,5 @@ export const BotLoader = ({ onComplete }: BotLoaderProps) => {
     };
   }, [onComplete]);
 
-  return (
-    <div className={styles.loaderContainer}>
-      <div className={styles.initLoaderContainer}>
-        {/* The 5 staggered wave bars */}
-        <div className={styles.initWave}>
-          <div className={styles.initBar} style={{ animationDelay: '0s' }}></div>
-          <div className={styles.initBar} style={{ animationDelay: '0.1s' }}></div>
-          <div className={styles.initBar} style={{ animationDelay: '0.2s' }}></div>
-          <div className={styles.initBar} style={{ animationDelay: '0.3s' }}></div>
-          <div className={styles.initBar} style={{ animationDelay: '0.4s' }}></div>
-        </div>
-        <div className={styles.initText}>Initializing Deriv Bot account...</div>
-      </div>
-    </div>
-  );
+  return <AppLoader label="Loading simulated bot account" />;
 };

@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useAccount } from '../../context/AccountContext';
+import type { AccountBalances, BalanceSyncTargets } from '../../context/AccountContext';
 import { supabase } from '../../lib/supabase'; // <-- Added Supabase import
 import derivMobileAppImg from '../../assets/deriv-mobile-app.png';
 
@@ -11,7 +12,7 @@ type ProfileScreenProps = {
 };
 
 export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onLogout, userFullName, userEmail }) => {
-  const { balances, setActiveMode, adminOverrideBalances } = useAccount();
+  const { balances, setActiveMode, adminOverrideBalances, confirmBalanceChanges } = useAccount();
   
   // Retrieve the global overrides from localStorage so they match the MobileTopHeader
   const [overrideName, setOverrideName] = useState(() => localStorage.getItem('admin_overrideName') || '');
@@ -37,6 +38,9 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onLogout, 
   
   const [secretName, setSecretName] = useState(overrideName);
   const [secretEmail, setSecretEmail] = useState(overrideEmail);
+  const [isSavingSecretAdmin, setIsSavingSecretAdmin] = useState(false);
+  const [secretAdminError, setSecretAdminError] = useState<string | null>(null);
+  const pendingSecretAdminRef = useRef<BalanceSyncTargets | null>(null);
 
   // --- NEW: SECRET CRYPTO DB OVERRIDE STATE ---
   const [showCryptoModal, setShowCryptoModal] = useState(false);
@@ -46,28 +50,41 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onLogout, 
   const [cryptoError, setCryptoError] = useState('');
   const [cryptoSuccess, setCryptoSuccess] = useState('');
 
-  const handleAdminSubmit = () => {
-    setActiveMode('real'); 
-    const updates: any = {};
-    if (secretOptions !== '') updates.optionsUsd = parseFloat(secretOptions);
-    if (secretCfds !== '') updates.cfdsUsd = parseFloat(secretCfds);
-    if (secretWallet !== '') updates.walletUsd = parseFloat(secretWallet);
-    if (secretP2p !== '') updates.p2pUsd = parseFloat(secretP2p);
-
-    // Save Name and Email overrides to LocalStorage
-    localStorage.setItem('admin_overrideName', secretName);
-    localStorage.setItem('admin_overrideEmail', secretEmail);
-    setOverrideName(secretName);
-    setOverrideEmail(secretEmail);
-
-    setTimeout(() => {
-      adminOverrideBalances(updates);
+  const handleAdminSubmit = async () => {
+    if (isSavingSecretAdmin) return;
+    setIsSavingSecretAdmin(true);
+    setSecretAdminError(null);
+    try {
+      if (!pendingSecretAdminRef.current) {
+        const updates: Partial<AccountBalances> = {};
+        if (secretOptions !== '') updates.optionsUsd = Number(secretOptions);
+        if (secretCfds !== '') updates.cfdsUsd = Number(secretCfds);
+        if (secretWallet !== '') updates.walletUsd = Number(secretWallet);
+        if (secretP2p !== '') updates.p2pUsd = Number(secretP2p);
+        pendingSecretAdminRef.current = adminOverrideBalances(updates);
+      }
+      // A timeout can mean the write succeeded. Retry the original queued
+      // sequence instead of submitting another absolute balance override.
+      await confirmBalanceChanges(pendingSecretAdminRef.current);
+      pendingSecretAdminRef.current = null;
+      setActiveMode('real');
+      localStorage.setItem('admin_overrideName', secretName);
+      localStorage.setItem('admin_overrideEmail', secretEmail);
+      setOverrideName(secretName);
+      setOverrideEmail(secretEmail);
       setShowSecretModal(false);
       setSecretOptions('');
       setSecretCfds('');
       setSecretWallet('');
       setSecretP2p('');
-    }, 50);
+    } catch (error) {
+      setSecretAdminError(
+        (error instanceof Error ? error.message : 'Could not save simulated balances') +
+        (pendingSecretAdminRef.current ? '. Changes are pending; retry confirmation without submitting again.' : ''),
+      );
+    } finally {
+      setIsSavingSecretAdmin(false);
+    }
   };
 
   // Update only the demo Binance wallet row belonging to this signed-in user.
@@ -835,9 +852,10 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onLogout, 
             </div>
             
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-              <button onClick={() => setShowSecretModal(false)} style={{ padding: '10px 16px', background: 'transparent', border: 'none', color: '#94a3b8', fontWeight: 600, cursor: 'pointer', fontFamily: '"IBM Plex Sans", sans-serif' }}>Cancel</button>
-              <button onClick={handleAdminSubmit} style={{ padding: '10px 20px', background: '#ff444f', border: 'none', borderRadius: '8px', color: '#fff', fontWeight: 600, cursor: 'pointer', fontFamily: '"IBM Plex Sans", sans-serif' }}>Update System</button>
+              <button onClick={() => { if (!isSavingSecretAdmin && !pendingSecretAdminRef.current) setShowSecretModal(false); }} disabled={isSavingSecretAdmin || pendingSecretAdminRef.current !== null} style={{ padding: '10px 16px', background: 'transparent', border: 'none', color: '#94a3b8', fontWeight: 600, cursor: 'pointer', fontFamily: '"IBM Plex Sans", sans-serif' }}>Cancel</button>
+              <button onClick={handleAdminSubmit} disabled={isSavingSecretAdmin} style={{ padding: '10px 20px', background: '#ff444f', border: 'none', borderRadius: '8px', color: '#fff', fontWeight: 600, cursor: 'pointer', fontFamily: '"IBM Plex Sans", sans-serif' }}>{isSavingSecretAdmin ? 'Saving…' : pendingSecretAdminRef.current ? 'Retry confirmation' : 'Update System'}</button>
             </div>
+            {secretAdminError && <p role="alert" style={{ color: '#ff8b93', fontSize: 12, marginTop: 12 }}>{secretAdminError}</p>}
           </div>
         </div>
       )}

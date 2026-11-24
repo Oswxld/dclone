@@ -9,7 +9,7 @@ type BotHeaderProps = {
 };
 
 export const BotHeader = ({ onBackToApp, customBalance }: BotHeaderProps) => {
-  const { balances, activeMode, setActiveMode } = useAccount();
+  const { balances, activeMode, setActiveMode, syncError } = useAccount();
   
   // Track if the Action Sheet is open
   const [isActionSheetOpen, setIsActionSheetOpen] = useState(false);
@@ -60,7 +60,7 @@ export const BotHeader = ({ onBackToApp, customBalance }: BotHeaderProps) => {
               style={{ cursor: 'pointer' }}
             >
               <span className={styles.accountTypeLabel} style={{ color: activeMode === 'demo' ? '#ff9900' : '#00a8a8' }}>
-                {activeMode === 'demo' ? 'Demo account' : 'Real account'}
+                {activeMode === 'demo' ? 'Simulated demo' : 'Simulated real'}
               </span>
               <svg
                 width="12"
@@ -78,14 +78,14 @@ export const BotHeader = ({ onBackToApp, customBalance }: BotHeaderProps) => {
                 <path d="M6 9l6 6 6-6" />
               </svg>
             </div>
-            <span className={styles.balanceText}>{displayBal} USD</span>
+            <span className={styles.balanceText} role="status" title={syncError || undefined}>{syncError ? 'Sync pending' : `${displayBal} USD`}</span>
           </div>
         </div>
 
         {/* Dynamic Action Button */}
         {activeMode === 'demo' ? (
           <button type="button" className={styles.tryRealBtn} onClick={() => setActiveMode('real')}>
-            Try real
+            Simulated real
           </button>
         ) : (
           <button type="button" className={styles.tryRealBtn} style={{ backgroundColor: '#ff444f', color: '#ffffff', border: 'none' }}>
@@ -117,7 +117,7 @@ export const BotHeader = ({ onBackToApp, customBalance }: BotHeaderProps) => {
                 >
                   <div className={`${styles.accDropdownAccount} ${activeMode === 'real' ? styles.accDropdownAccountSelected : ''}`}>
                     <div className={`${styles.accDropdownAccountName} ${styles.accDropdownAccountNameReal}`}>
-                      Real account
+                      Simulated real
                     </div>
                     <div className={styles.accDropdownAccountBalance}>
                       {activeMode === 'real' ? displayBal : inactiveRealBal} USD
@@ -132,7 +132,7 @@ export const BotHeader = ({ onBackToApp, customBalance }: BotHeaderProps) => {
                 >
                   <div className={`${styles.accDropdownAccount} ${activeMode === 'demo' ? styles.accDropdownAccountSelected : ''}`}>
                     <div className={`${styles.accDropdownAccountName} ${styles.accDropdownAccountNameDemo}`}>
-                      Demo account
+                      Simulated demo
                     </div>
                     <div className={styles.accDropdownAccountBalance}>
                       {activeMode === 'demo' ? displayBal : inactiveDemoBal} USD

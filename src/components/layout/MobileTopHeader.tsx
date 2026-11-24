@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import styles from './MobileTopHeader.module.css';
 import { useAccount } from '../../context/AccountContext';
+import type { AccountBalances, BalanceSyncTargets } from '../../context/AccountContext';
 import type { NavigationTab } from '../../types/account';
 import askAmySvg from '../../assets/ask_amy.svg';
 
@@ -24,6 +25,10 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenWithdraw, on
     realBalances,
     demoBalances,
     adminOverrideBalances,
+    confirmBalanceChanges,
+    refreshBalances,
+    syncError,
+    pendingCount,
     winAccuracy,
     setWinAccuracy
   } = useAccount();
@@ -32,6 +37,7 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenWithdraw, on
   const [isBalanceHidden, setIsBalanceHidden] = useState(false);
   
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [refreshError, setRefreshError] = useState<string | null>(null);
   const [localTimestamp, setLocalTimestamp] = useState<string | null>(null);
   
   // --- DYNAMIC UI STATES (Persistent via localStorage) ---
@@ -76,16 +82,18 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenWithdraw, on
         maximumFractionDigits: 2,
       });
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     if (isRefreshing) return;
     setIsRefreshing(true);
-    setTimeout(() => {
-      setIsRefreshing(false);
+    setRefreshError(null);
+    try {
+      await refreshBalances();
       setLocalTimestamp('Updated just now');
-      if (currentTab === 'options' && activeMode === 'demo') {
-        updateOptionsBalance(10000.0, true);
-      }
-    }, 800);
+    } catch (error) {
+      setRefreshError(error instanceof Error ? error.message : 'Could not refresh simulated balances');
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   const handleReset = () => {
@@ -95,6 +103,10 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenWithdraw, on
   };
 
   const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
+  const [isSavingAdmin, setIsSavingAdmin] = useState(false);
+  const [adminSaveError, setAdminSaveError] = useState<string | null>(null);
+  const pendingAdminRef = useRef<BalanceSyncTargets | null>(null);
+  const adminWasOpenRef = useRef(false);
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const [adminForm, setAdminForm] = useState({
@@ -114,9 +126,11 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenWithdraw, on
     overrideEmail: overrideEmail,
   });
 
+  const initialAdminRef = useRef(adminForm);
+
   useEffect(() => {
-    if (isAdminPanelOpen) {
-      setAdminForm({
+    if (isAdminPanelOpen && !adminWasOpenRef.current) {
+      const initialValues = {
         accuracy: winAccuracy,
         realWallet: realBalances.walletUsd,
         realPartners: 0,
@@ -130,8 +144,13 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenWithdraw, on
         initials: displayInitials,
         overrideName: overrideName,
         overrideEmail: overrideEmail,
-      });
+      };
+      initialAdminRef.current = initialValues;
+      setAdminForm(initialValues);
+      setAdminSaveError(null);
+      pendingAdminRef.current = null;
     }
+    adminWasOpenRef.current = isAdminPanelOpen;
   }, [isAdminPanelOpen, winAccuracy, realBalances, demoBalances, unreadCount, displayInitials, overrideName, overrideEmail]);
 
   const handleBellPointerDown = () => {
@@ -147,35 +166,48 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenWithdraw, on
     }
   };
 
-  const handleSaveAdmin = () => {
-    setWinAccuracy(adminForm.accuracy);
-    
-    // Save Dynamic UI elements to State
-    setUnreadCount(adminForm.unreadCount);
-    setCustomInitials(adminForm.initials);
-    setOverrideName(adminForm.overrideName);
-    setOverrideEmail(adminForm.overrideEmail);
-
-    // Save Dynamic UI elements to LocalStorage so they survive unmounts
-    localStorage.setItem('admin_unreadCount', adminForm.unreadCount.toString());
-    localStorage.setItem('admin_customInitials', adminForm.initials);
-    localStorage.setItem('admin_overrideName', adminForm.overrideName);
-    localStorage.setItem('admin_overrideEmail', adminForm.overrideEmail);
-
-    adminOverrideBalances(
-      {
-        walletUsd: adminForm.realWallet,
-        walletUsdt: adminForm.realUsdt,
-        optionsUsd: adminForm.realOptions,
-        cfdsUsd: adminForm.realCfds,
-        p2pUsd: adminForm.realP2p,
-      },
-      {
-        optionsUsd: adminForm.demoOptions,
-        cfdsUsd: adminForm.demoCfds,
+  const handleSaveAdmin = async () => {
+    if (isSavingAdmin) return;
+    setIsSavingAdmin(true);
+    setAdminSaveError(null);
+    try {
+      if (!pendingAdminRef.current) {
+        // Only save fields that the admin actually edited. A live bot can change
+        // Options while the panel is open; untouched fields must not reset it.
+        const original = initialAdminRef.current;
+        const realUpdates: Partial<AccountBalances> = {};
+        const demoUpdates: Partial<AccountBalances> = {};
+        if (adminForm.realWallet !== original.realWallet) realUpdates.walletUsd = adminForm.realWallet;
+        if (adminForm.realUsdt !== original.realUsdt) realUpdates.walletUsdt = adminForm.realUsdt;
+        if (adminForm.realOptions !== original.realOptions) realUpdates.optionsUsd = adminForm.realOptions;
+        if (adminForm.realCfds !== original.realCfds) realUpdates.cfdsUsd = adminForm.realCfds;
+        if (adminForm.realP2p !== original.realP2p) realUpdates.p2pUsd = adminForm.realP2p;
+        if (adminForm.demoOptions !== original.demoOptions) demoUpdates.optionsUsd = adminForm.demoOptions;
+        if (adminForm.demoCfds !== original.demoCfds) demoUpdates.cfdsUsd = adminForm.demoCfds;
+        pendingAdminRef.current = adminOverrideBalances(realUpdates, demoUpdates);
       }
-    );
-    setIsAdminPanelOpen(false);
+      // Flush the EXACT queued sequence; retries never enqueue a second save.
+      await confirmBalanceChanges(pendingAdminRef.current);
+      pendingAdminRef.current = null;
+
+      setWinAccuracy(adminForm.accuracy);
+      setUnreadCount(adminForm.unreadCount);
+      setCustomInitials(adminForm.initials);
+      setOverrideName(adminForm.overrideName);
+      setOverrideEmail(adminForm.overrideEmail);
+      localStorage.setItem('admin_unreadCount', adminForm.unreadCount.toString());
+      localStorage.setItem('admin_customInitials', adminForm.initials);
+      localStorage.setItem('admin_overrideName', adminForm.overrideName);
+      localStorage.setItem('admin_overrideEmail', adminForm.overrideEmail);
+      setIsAdminPanelOpen(false);
+    } catch (error) {
+      setAdminSaveError(
+        (error instanceof Error ? error.message : 'Could not confirm admin balances') +
+        (pendingAdminRef.current ? '. Changes remain queued; press Done to retry confirmation.' : ''),
+      );
+    } finally {
+      setIsSavingAdmin(false);
+    }
   };
 
   const handleResetDemoAdmin = () => {
@@ -279,10 +311,11 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenWithdraw, on
                 </button>
               </div>
               {!isRefreshing && (
-                <span className={styles.timestamp} style={{ color: 'rgba(255,255,255,0.72)' }}>
-                  {localTimestamp || `Updated ${balances.lastUpdated.toLowerCase()}`}
+                <span className={styles.timestamp} role="status" title={syncError || undefined} style={{ color: 'rgba(255,255,255,0.72)' }}>
+                  {syncError ? `Sync pending (${pendingCount})` : localTimestamp || `Updated ${balances.lastUpdated.toLowerCase()}`}
                 </span>
               )}
+              {refreshError && <span role="alert" style={{ color: '#ff9090', fontSize: 12 }}>{refreshError}</span>}
             </div>
 
             <div className={styles.circleActionsRow} style={{ justifyContent: 'space-around', margin: 0, paddingBottom: '4px' }}>
@@ -341,14 +374,14 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenWithdraw, on
                   className={`${styles.toggleBtn} ${activeMode === 'real' ? styles.toggleBtnActive : ''}`}
                   onClick={() => setActiveMode('real')}
                 >
-                  Real
+                  Paper real
                 </button>
                 <button
                   type="button"
                   className={`${styles.toggleBtn} ${activeMode === 'demo' ? styles.toggleBtnActive : ''}`}
                   onClick={() => setActiveMode('demo')}
                 >
-                  Demo
+                  Paper demo
                 </button>
               </div>
             ) : (
@@ -413,10 +446,10 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenWithdraw, on
           <div className={styles.balanceTextBlock}>
             <span className={styles.totalLabel}>
               {currentTab === 'home'
-                ? 'Total value'
+                ? 'Simulated total value'
                 : currentTab === 'portfolio'
-                ? 'Est. total value'
-                : 'Total trading value'}
+                ? 'Simulated total value'
+                : 'Simulated trading value'}
             </span>
             <div className={styles.balanceAmountRow}>
               {isRefreshing ? (
@@ -447,10 +480,11 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenWithdraw, on
               </button>
             </div>
             {!isRefreshing && (
-              <span className={styles.timestamp}>
-                {currentTab === 'cfds' ? 'Updated 6 min ago' : (localTimestamp || `Updated ${balances.lastUpdated.toLowerCase()}`)}
+              <span className={styles.timestamp} role="status" title={syncError || undefined}>
+                {syncError ? `Sync pending (${pendingCount})` : localTimestamp || `Updated ${balances.lastUpdated.toLowerCase()}`}
               </span>
             )}
+            {refreshError && <span role="alert" style={{ color: '#c92835', fontSize: 12 }}>{refreshError}</span>}
           </div>
 
           {/* --- NEW CIRCULAR BUTTONS FOR HOME TAB --- */}
@@ -544,7 +578,7 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenWithdraw, on
 
       {/* --- HIDDEN ADMIN PANEL MODAL --- */}
       {isAdminPanelOpen && (
-        <div className={styles.adminModalBackdrop} onClick={() => setIsAdminPanelOpen(false)}>
+        <div className={styles.adminModalBackdrop} onClick={() => { if (!isSavingAdmin && !pendingAdminRef.current) setIsAdminPanelOpen(false); }}>
           <div className={styles.adminSheetContent} onClick={(e) => e.stopPropagation()}>
             <div className={styles.adminSheetHandle} />
             
@@ -747,13 +781,14 @@ export const MobileTopHeader = ({ currentTab, onOpenTransfer, onOpenWithdraw, on
 
             {/* Actions */}
             <div className={styles.adminActionsRow}>
-              <button type="button" className={styles.adminBtnOutline} onClick={handleResetDemoAdmin}>
+              <button type="button" className={styles.adminBtnOutline} onClick={handleResetDemoAdmin} disabled={isSavingAdmin || pendingAdminRef.current !== null}>
                 Reset demo
               </button>
-              <button type="button" className={styles.adminBtnFilled} onClick={handleSaveAdmin}>
-                Done
+              <button type="button" className={styles.adminBtnFilled} onClick={handleSaveAdmin} disabled={isSavingAdmin}>
+                {isSavingAdmin ? 'Saving…' : pendingAdminRef.current ? 'Retry confirmation' : 'Done'}
               </button>
             </div>
+            {adminSaveError && <p role="alert" style={{ color: '#c92835', fontSize: 12, marginTop: 8 }}>{adminSaveError}</p>}
 
           </div>
         </div>
