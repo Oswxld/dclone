@@ -9,7 +9,7 @@ type BotHeaderProps = {
 };
 
 export const BotHeader = ({ onBackToApp, customBalance }: BotHeaderProps) => {
-  const { balances, activeMode, setActiveMode, syncError } = useAccount();
+  const { balances, realBalances, demoBalances, activeMode, setActiveMode } = useAccount();
   
   // Track if the Action Sheet is open
   const [isActionSheetOpen, setIsActionSheetOpen] = useState(false);
@@ -21,14 +21,15 @@ export const BotHeader = ({ onBackToApp, customBalance }: BotHeaderProps) => {
         : parseFloat(customBalance)
       : balances.optionsUsd;
 
-  const displayBal = activeNum.toLocaleString('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  const formatBal = (val: number) =>
+    val.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
 
-  // Fallbacks for the inactive account display in the menu
-  const inactiveDemoBal = '10,000.00';
-  const inactiveRealBal = '0.00';
+  const displayBal = formatBal(activeNum);
+  const realBalDisplay = formatBal(realBalances.optionsUsd);
+  const demoBalDisplay = formatBal(demoBalances.optionsUsd);
 
   return (
     <>
@@ -78,7 +79,7 @@ export const BotHeader = ({ onBackToApp, customBalance }: BotHeaderProps) => {
                 <path d="M6 9l6 6 6-6" />
               </svg>
             </div>
-            <span className={styles.balanceText} role="status" title={syncError || undefined}>{syncError ? 'Sync pending' : `${displayBal} USD`}</span>
+            <span className={styles.balanceText} role="status">{displayBal} USD</span>
           </div>
         </div>
 
@@ -120,7 +121,7 @@ export const BotHeader = ({ onBackToApp, customBalance }: BotHeaderProps) => {
                       Real Account
                     </div>
                     <div className={styles.accDropdownAccountBalance}>
-                      {activeMode === 'real' ? displayBal : inactiveRealBal} USD
+                      {activeMode === 'real' ? displayBal : realBalDisplay} USD
                     </div>
                   </div>
                 </div>
@@ -135,7 +136,7 @@ export const BotHeader = ({ onBackToApp, customBalance }: BotHeaderProps) => {
                       Demo Account
                     </div>
                     <div className={styles.accDropdownAccountBalance}>
-                      {activeMode === 'demo' ? displayBal : inactiveDemoBal} USD
+                      {activeMode === 'demo' ? displayBal : demoBalDisplay} USD
                     </div>
                   </div>
                 </div>

@@ -197,7 +197,7 @@ export const TransferScreen = ({ onClose, onNavigateToOptions }: TransferScreenP
       </div>
 
       {/* 3. Zero Balance Warning */}
-      {availableBalance === 0 && (
+      {availableBalance === 0 && !isTransferring && !hasPendingTransfer && !isSuccess && (
         <div className={styles.warningBanner}>
           <span className={styles.warningText}>
             No funds in {fromAccount.name}.{' '}

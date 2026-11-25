@@ -261,17 +261,17 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
       // --- FORCE FINISH LOGIC: If we hit Stop while a contract is actively pending ---
       if (simPhase === 'BOUGHT' && activeContract) {
         const { action, stake, potentialPayout } = activeContract;
-        const startSpot = transactions[0]?.entrySpot || 868.0;
-        const isOneTickMatchDiff = ['Matches', 'Differs'].includes(action) && currentDuration === 1;
+        const startSpot = transactions[0]?.entrySpot || 1578.0;
+        const isOneTickSameSpot = ['Matches', 'Differs', 'Even', 'Odd'].includes(action) && currentDuration === 1;
 
-        const forceWin = isOneTickMatchDiff && preForcedWinRef.current !== null
+        const forceWin = isOneTickSameSpot && preForcedWinRef.current !== null
           ? preForcedWinRef.current
           : Math.random() < (winAccuracy / 100);
         
         // Fast-forward exit spot based on forced probability
         let exitSpot = startSpot;
-        if (isOneTickMatchDiff) {
-          // Strictly identical entry and exit spot for 1-tick Matches/Differs
+        if (isOneTickSameSpot) {
+          // Strictly identical entry and exit spot for 1-tick Matches/Differs & Even/Odd
           exitSpot = startSpot;
         } else if (['Rise', 'Fall', 'Under', 'Over', 'Even', 'Odd', 'Matches', 'Differs'].includes(action)) {
           if (action === 'Rise') {
@@ -308,7 +308,7 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
           if (newTx.length > 0 && newTx[0].isPending) {
             newTx[0].exitSpot = exitSpot;
             // Also ensure the entry spot perfectly matches the exit spot on resolution
-            if (isOneTickMatchDiff) newTx[0].entrySpot = exitSpot; 
+            if (isOneTickSameSpot) newTx[0].entrySpot = exitSpot; 
             newTx[0].isWin = isWin;
             newTx[0].profit = tradeProfit;
             newTx[0].isPending = false;
@@ -370,7 +370,12 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
     // Parse the stake from blockly, default to 0.335 if empty/not set
     const stake = parseFloat(optionsBlock?.getFieldValue('STAKE') || '0.335');
     const duration = parseInt(optionsBlock?.getFieldValue('DURATION') || '1', 10);
-    const prediction = parseInt(optionsBlock?.getFieldValue('PREDICTION') || '1', 10);
+    const rawPrediction = optionsBlock?.getFieldValue('PREDICTION');
+    const parsedPrediction =
+      rawPrediction !== null && rawPrediction !== undefined && rawPrediction !== ''
+        ? parseInt(String(rawPrediction), 10)
+        : 1;
+    const prediction = Number.isNaN(parsedPrediction) ? 1 : parsedPrediction;
     
     setCurrentDuration(duration); 
 
@@ -422,17 +427,31 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
 
     setSimPhase('BOUGHT');
 
-    // Check if this is specifically a 1-Tick Matches/Differs trade
-    const isOneTickMatchDiff = category === 'Digits' && tradeType === 'MATCHDIFF' && duration === 1;
-    let startSpot = parseFloat((868.0 + Math.random() * 2).toFixed(2));
+    // Check if this is specifically a 1-Tick Matches/Differs or Even/Odd trade
+    const isOneTickSameSpot =
+      category === 'Digits' &&
+      (tradeType === 'MATCHDIFF' || tradeType === 'EVENODD') &&
+      duration === 1;
+    let startSpot = parseFloat((1578.0 + Math.random() * 2).toFixed(2));
 
-    if (isOneTickMatchDiff) {
+    if (isOneTickSameSpot) {
       const forceWin = Math.random() < (winAccuracy / 100);
       preForcedWinRef.current = forceWin;
 
       const allDigits = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-      const winningDigits = actionLabel === 'Matches' ? [prediction] : allDigits.filter(d => d !== prediction);
-      const losingDigits = actionLabel === 'Matches' ? allDigits.filter(d => d !== prediction) : [prediction];
+      const evens = [0, 2, 4, 6, 8];
+      const odds = [1, 3, 5, 7, 9];
+
+      let winningDigits: number[] = [];
+      let losingDigits: number[] = [];
+
+      if (tradeType === 'MATCHDIFF') {
+        winningDigits = actionLabel === 'Matches' ? [prediction] : allDigits.filter(d => d !== prediction);
+        losingDigits = actionLabel === 'Matches' ? allDigits.filter(d => d !== prediction) : [prediction];
+      } else {
+        winningDigits = actionLabel === 'Even' ? evens : odds;
+        losingDigits = actionLabel === 'Even' ? odds : evens;
+      }
 
       const finalDigit = forceWin ? pickRandom(winningDigits) : pickRandom(losingDigits);
       const spotStr = startSpot.toFixed(2);
@@ -488,8 +507,8 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
 
       let nextSpot = currentSpot;
 
-      if (isOneTickMatchDiff) {
-        // Lock spot so Entry and Exit are 100% identical on 1-tick Matches/Differs
+      if (isOneTickSameSpot) {
+        // Lock spot so Entry and Exit are 100% identical on 1-tick Matches/Differs & Even/Odd
         nextSpot = startSpot;
       } else {
         nextSpot = currentSpot + (Math.random() - 0.49) * 0.4;
@@ -562,7 +581,7 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
     if (!isSimulatingRef.current) return;
 
     let isWin = false;
-    const exitSpot = isOneTickMatchDiff ? startSpot : parseFloat(currentSpot.toFixed(2));
+    const exitSpot = isOneTickSameSpot ? startSpot : parseFloat(currentSpot.toFixed(2));
     const finalDigit = parseInt(exitSpot.toFixed(2).slice(-1), 10);
 
     if (category === 'Digits') {
@@ -604,7 +623,7 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
       ...prev,
     ]);
 
-    const finalEntrySpot = isOneTickMatchDiff ? exitSpot : parseFloat(startSpot.toFixed(2));
+    const finalEntrySpot = isOneTickSameSpot ? exitSpot : parseFloat(startSpot.toFixed(2));
 
     setTransactions((prev) => prev.map((tx) => 
       tx.id === currentTxId ? {
@@ -1001,8 +1020,8 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
                         </thead>
                         <tbody>
                           {transactions.map((tx) => {
-                            // Only apply double-skeleton logic to 1-Tick Match/Diff contracts
-                            const isMatchDiff1Tick = ['Matches', 'Differs'].includes(tx.type) && tx.duration === 1;
+                            // Apply double-skeleton logic to 1-Tick Match/Diff and Even/Odd contracts
+                            const isSameSpot1Tick = ['Matches', 'Differs', 'Even', 'Odd'].includes(tx.type) && tx.duration === 1;
                             
                             return (
                             <tr key={tx.id} className={styles.transTableRow}>
@@ -1016,8 +1035,8 @@ export const BotWorkspace = ({ onBack }: BotWorkspaceProps) => {
                                 <div className={`${styles.spotStack} ${tx.isPending ? styles.slideInCell : ''}`}>
                                   <div className={styles.spotLine}>
                                     <div className={styles.spotCircleRed} />
-                                    {/* Render skeleton for Entry spot ONLY if it's a pending 1-tick Match/Diff */}
-                                    {tx.isPending && isMatchDiff1Tick ? (
+                                    {/* Render skeleton for Entry spot ONLY if it's a pending 1-tick Match/Diff or Even/Odd */}
+                                    {tx.isPending && isSameSpot1Tick ? (
                                       <div className={styles.skeletonBar} />
                                     ) : (
                                       <span>{formatMoney(tx.entrySpot)}</span>

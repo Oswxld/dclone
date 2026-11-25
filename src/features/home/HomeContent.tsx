@@ -12,32 +12,46 @@ import moreIcon from '../../assets/More.png';
 import cryptoTransferHero from '../../assets/crypto_transfer.png';
 import metalsHero from '../../assets/Metals.png';
 import exchangeHighlightHero from '../../assets/exchange_highlight.webp';
+import antEntersChartImg from './ANTEntersChart.webp';
+import crashBoomImg from './Crash_boom.webp';
 
-const BANNER_DATA = [
-  { 
-    id: 'Deriv Exchange', 
-    title: 'Deriv Exchange', 
+type BannerItem = {
+  id: string;
+  title: string;
+  desc: string;
+  image?: string;
+  lottie?: string;
+  icon?: string;
+  dark?: boolean;
+};
+
+const BANNER_DATA: BannerItem[] = [
+  {
+    id: 'anthropic_cfds',
+    title: 'ANT has entered the chart',
+    desc: 'Trade Anthropic CFDs on MT5, cTrader and TradingView.',
+    image: antEntersChartImg,
+    dark: true,
+  },
+  {
+    id: 'crash_boom',
+    title: 'New Crash/Boom trades',
+    desc: 'Trade the spikes with Rise/Fall. Now in demo.',
+    image: crashBoomImg,
+    dark: true,
+  },
+  {
+    id: 'Deriv Exchange',
+    title: 'Deriv Exchange',
     desc: 'Buy, sell and trade popular crypto pairs on spot and futures 24/7.',
     lottie: '/lottie 4.json',
-    icon: cryptoIcon 
+    icon: cryptoIcon,
   },
-  { 
-    id: 'tradingview', 
-    title: 'Trade with TradingView charts', 
+  {
+    id: 'tradingview',
+    title: 'Trade with TradingView charts',
     desc: 'Advanced charts and tools for 24/7 Derived Indices.',
-    lottie: '/lottie.json' 
-  },
-  { 
-    id: 'spacex', 
-    title: 'SpaceX CFDs', 
-    desc: 'Trade the space giant with competitive leverage.',
-    lottie: '/lottie 1.json' 
-  },
-  { 
-    id: 'ai-analysis', 
-    title: 'AI market analysis', 
-    desc: 'Get AI-powered insights on Gold, BTC, Silver, ETH, and more.',
-    lottie: '/lottie 2.json' 
+    lottie: '/lottie.json',
   },
 ];
 
@@ -130,7 +144,7 @@ export const HomeContent = () => {
 
       </div>
 
-      {/* NEW: Lottie Banner Carousel */}
+      {/* NEW: Banner Carousel */}
       {visibleBanners.length > 0 && (
         <div className={styles.carouselWrapper}>
           <div 
@@ -144,6 +158,7 @@ export const HomeContent = () => {
               <div 
                 key={item.id} 
                 className={`${styles.carouselCard} ${item.id === 'Deriv Exchange' ? styles.exchangeCardBg : ''}`}
+                style={item.dark ? { backgroundColor: 'rgb(24, 28, 37)' } : undefined}
               >
                 <div className={styles.cardInner}>
                   <div className={styles.textContent}>
@@ -154,17 +169,23 @@ export const HomeContent = () => {
                     <p className={styles.cardDesc}>{item.desc}</p>
                   </div>
 
-                  <div className={styles.lottieWrapper}>
-                    {/* @ts-ignore */}
-                    <lottie-player 
-                      src={item.lottie} 
-                      background="transparent"  
-                      speed="1"  
-                      style={{ width: '100%', height: '100%' }}
-                      loop  
-                      autoplay
-                    ></lottie-player>
-                  </div>
+                  {item.image ? (
+                    <div className={styles.bannerImageWrapper}>
+                      <img src={item.image} alt="" className={styles.bannerImage} />
+                    </div>
+                  ) : (
+                    <div className={styles.lottieWrapper}>
+                      {/* @ts-ignore */}
+                      <lottie-player 
+                        src={item.lottie} 
+                        background="transparent"  
+                        speed="1"  
+                        style={{ width: '100%', height: '100%' }}
+                        loop  
+                        autoplay
+                      ></lottie-player>
+                    </div>
+                  )}
                 </div>
 
                 <button

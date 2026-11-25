@@ -212,6 +212,29 @@
   justify-content: center;
 }
 
+.bannerImageWrapper {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 144px;
+  height: 100%;
+  padding: 6px 8px 4px 0;
+  box-sizing: border-box;
+  z-index: 1;
+  pointer-events: none;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+}
+
+.bannerImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: right bottom;
+  display: block;
+}
+
 .closeBtn {
   position: absolute;
   top: 12px;
